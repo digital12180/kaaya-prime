@@ -2,7 +2,7 @@
 import jwt from "jsonwebtoken";
 import type { Request, Response, NextFunction } from 'express';
 import { AdminUser } from '../../modules/auth/auth.model.js';
-import { ROLES, ROLE_MAP, ROLE_REVERSE_MAP } from '../constants/index.js';
+import { ROLES } from '../constants/index.js';
 import { ERROR_MESSAGES } from '../responses/message.js';
 import { ApiResponse } from '../utils/response.js';
 
@@ -123,15 +123,15 @@ export const verifyToken = async (
         });
 
         // Get role name from numeric role
-        const roleName = ROLES[decoded.role];
+        const roleName = decoded.role;
         if (!roleName) {
             console.error("❌ Invalid role in token:", decoded.role);
             return ApiResponse.error(res, ERROR_MESSAGES.INVALID_ROLE, 403);
         }
-        
-           const user = await AdminUser.findById(decoded.userId)
-                .select('-password')
-                .lean();
+
+        const user = await AdminUser.findById(decoded.userId)
+            .select('-password')
+            .lean();
 
         if (!user) {
             console.error("❌ User not found for ID:", decoded.userId);

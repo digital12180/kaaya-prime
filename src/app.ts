@@ -8,6 +8,9 @@ import helmet from "helmet";
 import compression from "compression";
 import cookieParser from "cookie-parser";
 
+//Routes 
+import BaseRoutes from "./routes/index.js";
+
 const app=express();
 
 app.use(helmet({
@@ -67,6 +70,6 @@ app.get('/', (req, res) => {
 });
 
 //======================BASE ROUTE=====================
-// app.use('/api/v1', BaseRoutes);
+app.use('/apis/v1', BaseRoutes);
 // ==================== EXPORT APP ====================
 export default app;

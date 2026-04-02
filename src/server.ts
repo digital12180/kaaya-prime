@@ -1,4 +1,4 @@
-import { errorHandler } from "./common/middleware/error.middleware.js";
+import  {errorHandler}  from "./common/middleware/error.middleware.js";
 import http from "http";
 import { connectDB } from "./config/db.js";
 
