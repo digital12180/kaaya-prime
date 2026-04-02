@@ -4,8 +4,8 @@ export interface IOpportunity extends Document {
   title: string;
   description: string;
   location: string;
-  images: string[];
-  status: "active" | "inactive" | "sold";
+  image: string;
+  status: "ACTIVE" | "UPCOMING" | "SOLD OUT" | "UNDER REVIEW";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -30,17 +30,15 @@ const OpportunitySchema: Schema<IOpportunity> = new Schema(
       trim: true,
       index: true, // 🔥 filter by city/location
     },
-
-    images: [
-      {
-        type: String,
-      },
-    ],
-
+    image:
+    {
+      type: String,
+      trim: true
+    },
     status: {
       type: String,
-      enum: ["active", "inactive", "sold"],
-      default: "active",
+      enum: ["ACTIVE", "UPCOMING", "SOLD OUT", "UNDER REVIEW"],
+      default: "ACTIVE",
       index: true, // 🔥 filtering
     },
   },
