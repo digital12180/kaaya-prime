@@ -1,0 +1,36 @@
+export declare const env: {
+    NODE_ENV: string;
+    PORT: number;
+    API_PREFIX: string;
+    MONGODB_URI: string;
+    REDIS_URL: string;
+    JWT_SECRET: string;
+    JWT_EXPIRES_IN: string;
+    JWT_REFRESH_SECRET: string;
+    JWT_REFRESH_EXPIRES_IN: string;
+    BCRYPT_ROUNDS: number;
+    STRIPE_PUBLISHABLE_KEY: string;
+    STRIPE_SECRET_KEY: string;
+    STRIPE_WEBHOOK_SECRET: string;
+    CURRENCY: string;
+    CONSULTATION_FEE: number;
+    SMTP_HOST: number;
+    SMTP_PORT: number;
+    SMTP_SECURE: boolean;
+    SMTP_USER: string;
+    SMTP_PASS: string;
+    EMAIL_FROM: string;
+    TWILIO_ACCOUNT_SID: string;
+    TWILIO_AUTH_TOKEN: string;
+    TWILIO_PHONE_NUMBER: number;
+    CLOUDINARY_CLOUD_NAME: string;
+    CLOUDINARY_API_KEY: string;
+    CLOUDINARY_API_SECRET: string;
+    MAX_FILE_SIZE: number;
+    ALLOWED_FILE_TYPES: string;
+    FRONTEND_URL: string;
+    FRONTEND_URL_PROD: string;
+    ADMIN_EMAIL: string;
+    ADMIN_PASSWORD: string;
+};
+//# sourceMappingURL=env.d.ts.map

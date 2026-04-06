@@ -1,0 +1,20 @@
+import authRoutes from "../modules/auth/auth.routes.js";
+import leadRoutes from "../modules/lead/lead.routes.js";
+import opportunityRoutes from "../modules/opportunity/opportunity.routes.js";
+import areaRoutes from "../modules/area/area.routes.js";
+import blogRoutes from "../modules/blog/blog.routes.js";
+import reportRoutes from "../modules/report/report.routes.js";
+import { Router } from "express";
+import landingPageRoutes from "../modules/landingPage/landingPage.routes.js";
+import userRoutes from "../modules/user/user.routes.js";
+const router = Router();
+router.use('/auth', authRoutes);
+router.use('/lead', leadRoutes);
+router.use('/opportunities', opportunityRoutes);
+router.use('/areas', areaRoutes);
+router.use('/blogs', blogRoutes);
+router.use('/reports', reportRoutes);
+router.use('/landing-pages', landingPageRoutes);
+router.use('/users', userRoutes);
+export default router;
+//# sourceMappingURL=index.js.map

@@ -1,0 +1,16 @@
+// routes/lead.routes.ts
+import { Router } from "express";
+import { LeadController } from "./lead.controller.js";
+import { verifyToken } from "../../common/middleware/auth.middleware.js";
+const router = Router();
+const leadController = new LeadController();
+// Lead routes
+router.post("/create", verifyToken, leadController.createLead);
+router.get("/get-all", verifyToken, leadController.getAllLeads);
+router.get("/statistics", verifyToken, leadController.getLeadStatistics);
+router.get("/:id", verifyToken, leadController.getLeadById);
+router.put("/:id", verifyToken, leadController.updateLead);
+router.delete("/:id", verifyToken, leadController.deleteLead);
+router.get("/search/name", verifyToken, leadController.searchLead);
+export default router;
+//# sourceMappingURL=lead.routes.js.map

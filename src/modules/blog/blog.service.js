@@ -1,0 +1,216 @@
+// services/blog.service.ts
+import mongoose from "mongoose";
+import { Blog } from "./blog.model.js";
+import { generateSlug } from "./blog.dto.js";
+export class BlogService {
+    // Create a new blog
+    async createBlog(createDto) {
+        try {
+            // Generate slug from title
+            const slug = generateSlug(createDto.title);
+            // Check if slug already exists
+            const existingBlog = await Blog.findOne({ slug });
+            if (existingBlog) {
+                throw new Error(`Blog with slug '${slug}' already exists. Please use a different title.`);
+            }
+            // Check if title already exists (case-insensitive)
+            const existingTitle = await Blog.findOne({
+                title: { $regex: new RegExp(`^${createDto.title}$`, 'i') }
+            });
+            if (existingTitle) {
+                throw new Error("A blog with this title already exists");
+            }
+            // Set default meta title and description if not provided
+            const blogData = {
+                ...createDto,
+                slug,
+                status: createDto.status || "DRAFT",
+                metaTitle: createDto.metaTitle || createDto.title,
+                metaDescription: createDto.metaDescription || createDto.content.substring(0, 160).replace(/<[^>]*>/g, '')
+            };
+            const blog = new Blog(blogData);
+            await blog.save();
+            return blog;
+        }
+        catch (error) {
+            if (error.code === 11000) {
+                throw new Error("Duplicate blog detected (slug or title already exists)");
+            }
+            throw error;
+        }
+    }
+    // Get all blogs with pagination and search
+    async getAllBlogs(paginationDto) {
+        const page = Math.max(1, paginationDto.page || 1);
+        const limit = Math.min(100, Math.max(1, paginationDto.limit || 10));
+        const skip = (page - 1) * limit;
+        let query = {};
+        // Search functionality (text search)
+        if (paginationDto.search && paginationDto.search.trim()) {
+            query.$text = { $search: paginationDto.search };
+        }
+        // Filter by status
+        if (paginationDto.status) {
+            query.status = paginationDto.status;
+        }
+        // Sorting
+        let sort = { createdAt: -1 };
+        if (paginationDto.sortBy) {
+            const sortOrder = paginationDto.sortOrder === 'asc' ? 1 : -1;
+            sort = { [paginationDto.sortBy]: sortOrder };
+        }
+        const [blogs, total] = await Promise.all([
+            Blog.find(query)
+                .sort(sort)
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            Blog.countDocuments(query)
+        ]);
+        const totalPages = Math.ceil(total / limit);
+        return {
+            blogs: blogs,
+            total,
+            page,
+            limit,
+            totalPages
+        };
+    }
+    // Get blog by ID
+    async getBlogById(id) {
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            throw new Error("Invalid blog ID format");
+        }
+        const blog = await Blog.findById(id).lean();
+        if (!blog) {
+            throw new Error("Blog not found");
+        }
+        return blog;
+    }
+    // Get blog by slug (for SEO-friendly URLs)
+    async getBlogBySlug(slug) {
+        if (!slug || typeof slug !== 'string') {
+            throw new Error("Invalid slug format");
+        }
+        const blog = await Blog.findOne({ slug }).lean();
+        if (!blog) {
+            throw new Error("Blog not found");
+        }
+        return blog;
+    }
+    // Search blogs by title (simple title search)
+    async searchBlogsByTitle(searchTerm, paginationDto) {
+        if (!searchTerm || searchTerm.trim().length === 0) {
+            throw new Error("Search term is required");
+        }
+        const page = Math.max(1, paginationDto.page || 1);
+        const limit = Math.min(100, Math.max(1, paginationDto.limit || 10));
+        const skip = (page - 1) * limit;
+        // Case-insensitive title search using regex
+        const query = {
+            title: { $regex: searchTerm, $options: 'i' }
+        };
+        // Add status filter if provided
+        if (paginationDto.status) {
+            Object.assign(query, { status: paginationDto.status });
+        }
+        const [blogs, total] = await Promise.all([
+            Blog.find(query)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            Blog.countDocuments(query)
+        ]);
+        const totalPages = Math.ceil(total / limit);
+        return {
+            blogs: blogs,
+            total,
+            page,
+            limit,
+            totalPages
+        };
+    }
+    // Update blog
+    async updateBlog(id, updateDto) {
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            throw new Error("Invalid blog ID format");
+        }
+        const existingBlog = await Blog.findById(id);
+        if (!existingBlog) {
+            throw new Error("Blog not found");
+        }
+        // Check if title is being updated and generate new slug if needed
+        let updateData = { ...updateDto };
+        if (updateDto.title && updateDto.title !== existingBlog.title) {
+            const newSlug = generateSlug(updateDto.title);
+            // Check if new slug already exists for another blog
+            const slugExists = await Blog.findOne({
+                _id: { $ne: id },
+                slug: newSlug
+            });
+            if (slugExists) {
+                throw new Error(`Blog with slug '${newSlug}' already exists. Please use a different title.`);
+            }
+            // Check if title already exists for another blog
+            const titleExists = await Blog.findOne({
+                _id: { $ne: id },
+                title: { $regex: new RegExp(`^${updateDto.title}$`, 'i') }
+            });
+            if (titleExists) {
+                throw new Error("Another blog with this title already exists");
+            }
+            updateData.slug = newSlug;
+        }
+        // Update meta fields if not provided but content/title changed
+        if (updateDto.title && !updateDto.metaTitle) {
+            updateData.metaTitle = updateDto.title;
+        }
+        if (updateDto.content && !updateDto.metaDescription) {
+            updateData.metaDescription = updateDto.content.substring(0, 160).replace(/<[^>]*>/g, '');
+        }
+        const blog = await Blog.findByIdAndUpdate(id, { ...updateData, updatedAt: new Date() }, { new: true, runValidators: true }).lean();
+        if (!blog) {
+            throw new Error("Blog not found");
+        }
+        return blog;
+    }
+    // Delete blog
+    async deleteBlog(id) {
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            throw new Error("Invalid blog ID format");
+        }
+        const blog = await Blog.findByIdAndDelete(id);
+        if (!blog) {
+            throw new Error("Blog not found");
+        }
+        return {
+            message: "Blog deleted successfully",
+            deletedId: id
+        };
+    }
+    // Get published blogs only (for public viewing)
+    async getPublishedBlogs(paginationDto) {
+        paginationDto.status = "PUBLISHED";
+        return this.getAllBlogs(paginationDto);
+    }
+    // Get blog statistics
+    async getBlogStatistics() {
+        const [totalBlogs, publishedCount, draftCount, recentBlogs] = await Promise.all([
+            Blog.countDocuments(),
+            Blog.countDocuments({ status: "PUBLISHED" }),
+            Blog.countDocuments({ status: "DRAFT" }),
+            Blog.find({ status: "PUBLISHED" })
+                .sort({ createdAt: -1 })
+                .limit(5)
+                .lean()
+        ]);
+        return {
+            totalBlogs,
+            publishedCount,
+            draftCount,
+            recentBlogs: recentBlogs
+        };
+    }
+}
+//# sourceMappingURL=blog.service.js.map
