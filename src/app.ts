@@ -18,6 +18,7 @@ app.use(helmet({
     crossOriginEmbedderPolicy:false,
 }))
 const allowedOrigins = [
+  'https://kaaya-prime-realty-crm.vercel.app',
   'http://localhost:3000',
   '*'
 ];
