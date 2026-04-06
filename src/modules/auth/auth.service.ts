@@ -88,6 +88,7 @@ export class AdminService {
                 _id: user._id.toString(),
                 username: user.username,
                 role: user.role || 'editor',
+                email: user.email,
                 createdAt: user.createdAt,
                 updatedAt: user.updatedAt
             };
@@ -108,11 +109,11 @@ export class AdminService {
             console.log("📝 Update data:", updateData);
 
             // Remove sensitive fields
-            const { role } = updateData;
+            // const { email } = updateData;
 
-            if (!role) {
-                throw new ApiError(400, "Updated fields required")
-            }
+            // if (!email) {
+            //     throw new ApiError(400, "Updated fields required")
+            // }
 
             const user = await User.findByIdAndUpdate({ _id: userId as string });
 
@@ -120,11 +121,13 @@ export class AdminService {
                 console.error("❌ User not found for update:", userId);
                 throw new ApiError(404, ERROR_MESSAGES.USER_NOT_FOUND);
             }
-            user.role = role ?? user.role;
+            user.email = updateData.email ?? user.email;
+            user.username = updateData.username ?? user.username;
             await user.save();
             return {
                 _id: user._id.toString(),
                 username: user.username,
+                email: user.email,
                 role: user.role,
                 message: SUCCESS_MESSAGES.PROFILE_UPDATED,
             };
