@@ -192,8 +192,14 @@ export const checkRole = (allowedRoles: string[] = []) => {
 };
 
 // ✅ Admin Only Middleware (Shortcut)
-// export const adminOnly = checkRole([ROLES.admin]);
-// export const userAndadmin = checkRole([ROLES.admin, ROLES.user]);
+export const adminOnly = checkRole([ROLES.admin]);
+export const EditorAndadmin = checkRole([ROLES.admin, ROLES.editor]);
+export const ManagerAndadmin = checkRole([ROLES.admin, ROLES.manager]);
+export const managerOnly = checkRole([ROLES.manager]);
+export const editorOnly = checkRole([ROLES.editor]);
+
+
+
 
 
 //✅ Refresh Token Middleware (if needed) - UPDATED
