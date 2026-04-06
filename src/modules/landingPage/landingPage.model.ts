@@ -4,8 +4,8 @@ export interface ILandingPage extends Document {
   title: string;
   slug: string;
   content: string;
-  formType: "contact" | "consultation" | "download";
-  status: "active" | "inactive";
+  formType: "CONTACT" | "CONSULTATION" | "DOWNLOAD" | "NONE";
+  status: "PUBLISHED" | "DRAFT" | "DISABLED";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,15 +35,16 @@ const LandingPageSchema: Schema<ILandingPage> = new Schema(
 
     formType: {
       type: String,
-      enum: ["contact", "consultation", "download"],
+      enum: ["CONTACT", "CONSULTATION", "DOWNLOAD", "NONE"],
+      default: "NONE",
       required: true,
       index: true,
     },
 
     status: {
       type: String,
-      enum: ["active", "inactive"],
-      default: "active",
+      enum: ["PUBLISHED" ,"DRAFT" , "DISABLED"],
+      default: "PUBLISHED",
       index: true,
     },
   },

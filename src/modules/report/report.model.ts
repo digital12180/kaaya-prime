@@ -5,7 +5,7 @@ export interface IReport extends Document {
   description: string;
   fileUrl: string;
   image?: string;
-  status: "active" | "inactive";
+  status: "PUBLISHED" | "DRAFT"|"ARCHIVED";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -32,8 +32,8 @@ const ReportSchema: Schema<IReport> = new Schema(
     },
     status: {
       type: String,
-      enum: ["active", "inactive"],
-      default: "active",
+      enum: ["PUBLISHED" ,"DRAFT","ARCHIVED"],
+      default: "DRAFT",
       index: true,
     },
   },

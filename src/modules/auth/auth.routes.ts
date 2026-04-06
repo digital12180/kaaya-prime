@@ -5,10 +5,10 @@ import { verifyToken } from "../../common/middleware/auth.middleware.js";
 const router = Router();
 const controller = new AdminController();
 
-router.post(
-    "/register",
-    controller.register
-);
+// router.post(
+//     "/register",
+//     controller.register
+// );
 
 router.post(
     "/login",

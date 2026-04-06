@@ -3,7 +3,7 @@ import mongoose, { Document, Schema } from "mongoose";
 export interface IArea extends Document {
   name: string;
   slug: string;
-  content: string;
+  description: string;
   image?: string;
   metaTitle?: string;
   metaDescription?: string;
@@ -29,7 +29,7 @@ const AreaSchema: Schema<IArea> = new Schema(
       index: true,
     },
 
-    content: {
+    description: {
       type: String,
       required: true,
     },

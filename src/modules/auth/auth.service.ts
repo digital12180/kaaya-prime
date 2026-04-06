@@ -1,4 +1,4 @@
-import { AdminUser } from "./auth.model.js";
+import { User } from "../user/user.model.js";
 import bcrypt from "bcryptjs";
 import type { RegisterDTO, LoginDTO } from "./auth.dto.js";
 import { ApiError } from "../../common/exceptions/apiError.js";
@@ -10,36 +10,36 @@ import { OtpModel } from "./otp.model.js";
 
 
 export class AdminService {
-    async register(data: RegisterDTO) {
-        try {
-            const existingUser = await AdminUser.findOne({
-                username: data.username,
-            });
+    // async register(data: RegisterDTO) {
+    //     try {
+    //         const existingUser = await AdminUser.findOne({
+    //             username: data.username,
+    //         });
 
-            if (existingUser) {
-                throw new ApiError(409, "Username already exists");
-            }
+    //         if (existingUser) {
+    //             throw new ApiError(409, "Username already exists");
+    //         }
 
-            const hashedPassword = await bcrypt.hash(data.password, 10);
+    //         const hashedPassword = await bcrypt.hash(data.password, 10);
 
-            const user = await AdminUser.create({
-                username: data.username,
-                password: hashedPassword,
-                email: data.email,
-                role: data.role || "editor",
-            });
+    //         const user = await AdminUser.create({
+    //             username: data.username,
+    //             password: hashedPassword,
+    //             email: data.email,
+    //             role: data.role || "editor",
+    //         });
 
-            return user;
-        } catch (error) {
-            throw error instanceof ApiError
-                ? error
-                : new ApiError(500, "Failed to register user");
-        }
-    }
+    //         return user;
+    //     } catch (error) {
+    //         throw error instanceof ApiError
+    //             ? error
+    //             : new ApiError(500, "Failed to register user");
+    //     }
+    // }
 
     async login(data: LoginDTO) {
         try {
-            const user = await AdminUser.findOne({
+            const user = await User.findOne({
                 username: data.username,
             }).select("-__v -createdAt -updatedAt");
 
@@ -75,7 +75,7 @@ export class AdminService {
         try {
             console.log("🔍 [DEBUG] Getting profile for user ID:", userId);
 
-            const user = await AdminUser.findById({ _id: userId }).select("-password -__v");
+            const user = await User.findById({ _id: userId }).select("-password -__v");
 
             if (!user) {
                 console.error("❌ User not found for ID:", userId);
@@ -114,7 +114,7 @@ export class AdminService {
                 throw new ApiError(400, "Updated fields required")
             }
 
-            const user = await AdminUser.findByIdAndUpdate({ _id: userId as string });
+            const user = await User.findByIdAndUpdate({ _id: userId as string });
 
             if (!user) {
                 console.error("❌ User not found for update:", userId);
@@ -141,7 +141,7 @@ export class AdminService {
         if (typeof email !== "string") {
             throw new ApiError(400, "Email must be string");
         }
-        const user = await AdminUser.findOne({ email: email });
+        const user = await User.findOne({ email: email });
 
         if (!user) {
             throw new ApiError(404, "User not found");
@@ -180,7 +180,7 @@ export class AdminService {
         // ✅ update password
         const hashed = await bcrypt.hash(newPassword, 10);
 
-        await AdminUser.updateOne(
+        await User.updateOne(
             { email },
             { password: hashed }
         );

@@ -5,16 +5,16 @@ import { ApiError } from "../../common/exceptions/apiError.js";
 export class AdminController {
     private service = new AdminService();
 
-    register = async (req: Request, res: Response) => {
-        const user = await this.service.register(req.body);
+    // register = async (req: Request, res: Response) => {
+    //     const user = await this.service.register(req.body);
 
-        return ApiResponse.success(
-            res,
-            user,
-            "User registered successfully",
-            201
-        );
-    }
+    //     return ApiResponse.success(
+    //         res,
+    //         user,
+    //         "User registered successfully",
+    //         201
+    //     );
+    // }
 
     login = async (req: Request, res: Response) => {
         const { user, token } = await this.service.login(req.body);
