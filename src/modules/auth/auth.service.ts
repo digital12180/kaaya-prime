@@ -40,7 +40,7 @@ export class AdminService {
     async login(data: LoginDTO) {
         try {
             const user = await User.findOne({
-                username: data.username,
+                email: data.email,
             }).select("-__v -createdAt -updatedAt");
 
             if (!user) {
