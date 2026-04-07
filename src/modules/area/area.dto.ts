@@ -5,7 +5,7 @@ import type mongoose from "mongoose";
 export interface ICreateAreaDto {
     name: string;
     description: string;
-    opportunities: mongoose.Types.ObjectId[];
+    opportunities?: mongoose.Types.ObjectId[];
     image: string;
     metaTitle?: string;
     metaDescription?: string;

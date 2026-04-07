@@ -43,6 +43,7 @@ const AreaSchema: Schema<IArea> = new Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Opportunity",
+        default:[]
       },
     ],
     metaTitle: {

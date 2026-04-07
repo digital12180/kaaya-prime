@@ -6,7 +6,7 @@ export interface ICreateBlogDto {
     image?: string;
     metaTitle?: string;
     metaDescription?: string;
-    status?: "DRAFT" | "PUBLISHED";
+    status?: "DRAFT" | "PUBLISHED"|"ARCHIVED";
 }
 
 export interface IUpdateBlogDto {
@@ -15,7 +15,7 @@ export interface IUpdateBlogDto {
     image?: string;
     metaTitle?: string;
     metaDescription?: string;
-    status?: "DRAFT" | "PUBLISHED";
+    status?: "DRAFT" | "PUBLISHED"|"ARCHIVED";
 }
 
 export interface IBlogResponseDto {
@@ -26,7 +26,7 @@ export interface IBlogResponseDto {
     image: string;
     metaTitle: string;
     metaDescription: string;
-    status: "DRAFT" | "PUBLISHED";
+    status: "DRAFT" | "PUBLISHED"|"ARCHIVED";
     createdAt: Date;
     updatedAt: Date;
 }
@@ -35,7 +35,7 @@ export interface IPaginationDto {
     page?: number;
     limit?: number;
     search?: string;
-    status?: "DRAFT" | "PUBLISHED";
+    status?: "DRAFT" | "PUBLISHED"|"ARCHIVED";
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
 }
@@ -48,7 +48,7 @@ export class BlogResponseDto implements IBlogResponseDto {
     image: string;
     metaTitle: string;
     metaDescription: string;
-    status: "DRAFT" | "PUBLISHED";
+    status: "DRAFT" | "PUBLISHED"|"ARCHIVED";
     createdAt: Date;
     updatedAt: Date;
 
@@ -114,7 +114,7 @@ export const validateCreateBlog = (data: any): string[] => {
         }
     }
 
-    if (data.status && !["DRAFT", "PUBLISHED"].includes(data.status)) {
+    if (data.status && !["DRAFT", "PUBLISHED","ARCHIVED"].includes(data.status)) {
         errors.push("Status must be either 'draft' or 'published'");
     }
 
@@ -160,7 +160,7 @@ export const validateUpdateBlog = (data: any): string[] => {
         }
     }
 
-    if (data.status !== undefined && !["DRAFT", "PUBLISHED"].includes(data.status)) {
+    if (data.status !== undefined && !["DRAFT", "PUBLISHED","ARCHIVED"].includes(data.status)) {
         errors.push("Status must be either 'draft' or 'published'");
     }
 
