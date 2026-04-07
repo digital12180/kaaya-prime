@@ -96,15 +96,15 @@ export const validateUpdateRole = (data: any): string[] => {
 export const validateUpdateUser = (data: any): string[] => {
     const errors: string[] = [];
 
-    if (data.username !== undefined) {
-        if (typeof data.username !== 'string' || data.username.trim().length === 0) {
-            errors.push("Username must be a non-empty string if provided");
-        } else if (data.username.length < 3 || data.username.length > 30) {
-            errors.push("Username must be between 3 and 30 characters");
-        } else if (!/^[a-zA-Z0-9_]+$/.test(data.username)) {
-            errors.push("Username can only contain letters, numbers, and underscores");
-        }
-    }
+    // if (data.username !== undefined) {
+    //     if (typeof data.username !== 'string' || data.username.trim().length === 0) {
+    //         errors.push("Username must be a non-empty string if provided");
+    //     } else if (data.username.length < 3 || data.username.length > 30) {
+    //         errors.push("Username must be between 3 and 30 characters");
+    //     } else if (!/^[a-zA-Z0-9_]+$/.test(data.username)) {
+    //         errors.push("Username can only contain letters, numbers, and underscores");
+    //     }
+    // }
 
     if (data.email !== undefined) {
         if (typeof data.email !== 'string' || data.email.trim().length === 0) {
