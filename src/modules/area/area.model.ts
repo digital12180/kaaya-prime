@@ -6,6 +6,7 @@ export interface IArea extends Document {
   description: string;
   image?: string;
   metaTitle?: string;
+  opportunities: mongoose.Types.ObjectId[],
   metaDescription?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -38,7 +39,12 @@ const AreaSchema: Schema<IArea> = new Schema(
       type: String,
       default: "",
     },
-
+    opportunities: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Opportunity",
+      },
+    ],
     metaTitle: {
       type: String,
       trim: true,
@@ -63,6 +69,8 @@ AreaSchema.index({
   metaTitle: "text",
   metaDescription: "text",
 });
+
+AreaSchema.index({opportunities:1});
 
 // 🔥 COMPOUND INDEX (for fast lookup)
 AreaSchema.index({ slug: 1, createdAt: -1 });

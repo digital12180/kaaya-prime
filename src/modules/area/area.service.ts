@@ -5,16 +5,18 @@ import { Area } from "./area.model.js";
 import type {
     ICreateAreaDto,
     IUpdateAreaDto,
-    AreaResponseDto,
+    // AreaResponseDto,
     IPaginationDto,
 } from "./area.dto.js";
 import { generateSlug } from "./area.dto.js"
 import { ApiError } from "../../common/exceptions/apiError.js";
+import { uploadToCloudinary } from "../../config/cloudinary.js";
+import cloudinary from "../../config/cloudinary.js";
 
 export class AreaService {
 
     // Create a new area
-    async createArea(createDto: ICreateAreaDto): Promise<AreaResponseDto|Response|any> {
+    async createArea(createDto: ICreateAreaDto, file: Express.Multer.File): Promise<Response | any> {
         try {
             // Generate slug from name
             const slug = generateSlug(createDto.name);
@@ -33,7 +35,11 @@ export class AreaService {
             if (existingName) {
                 throw new Error("An area with this name already exists");
             }
-
+            const imageUrl = await uploadToCloudinary(file.buffer);
+            if (!imageUrl) {
+                throw new Error("Image Upload on cloudinary error");
+            }
+            createDto.image = imageUrl;
             // Set default meta title and description if not provided
             const areaData = {
                 ...createDto,
@@ -55,7 +61,7 @@ export class AreaService {
 
     // Get all areas with pagination and search
     async getAllAreas(paginationDto: IPaginationDto): Promise<{
-        areas: Response|any;
+        areas: Response | any;
         total: number;
         page: number;
         limit: number;
@@ -100,7 +106,7 @@ export class AreaService {
     }
 
     // Get area by ID
-    async getAreaById(id: string): Promise<AreaResponseDto|any> {
+    async getAreaById(id: string): Promise<any> {
         if (!mongoose.Types.ObjectId.isValid(id)) {
             throw new Error("Invalid area ID format");
         }
@@ -114,7 +120,7 @@ export class AreaService {
     }
 
     // Get area by slug (for SEO-friendly URLs)
-    async getAreaBySlug(slug: string): Promise<AreaResponseDto|any> {
+    async getAreaBySlug(slug: string): Promise<any> {
         if (!slug || typeof slug !== 'string') {
             throw new Error("Invalid slug format");
         }
@@ -128,7 +134,7 @@ export class AreaService {
     }
 
     // Update area
-    async updateArea(id: string, updateDto: IUpdateAreaDto): Promise<AreaResponseDto|any> {
+    async updateArea(id: string, updateDto: IUpdateAreaDto, file?: Express.Multer.File): Promise<any> {
         if (!mongoose.Types.ObjectId.isValid(id)) {
             throw new Error("Invalid area ID format");
         }
@@ -175,7 +181,28 @@ export class AreaService {
         if (updateDto.description && !updateDto.metaDescription) {
             updateData.metaDescription = updateDto.description.substring(0, 160);
         }
+        if (file) {
+            try {
+                const uploadedImageUrl = await uploadToCloudinary(file.buffer);
 
+                // 2. Delete old image (if exists)
+                if (existingArea?.image) {
+                    const parts = existingArea.image.split("/");
+                    const fileName = parts[parts.length - 1];
+                    const publicId = fileName?.split(".")[0];
+                    
+                    if (publicId) {
+                        await cloudinary.uploader.destroy(`kaaya/${publicId}`);
+                    }
+                }
+
+                // 3. Update data (IMPORTANT: updateData use karo, updateDto nahi)
+                updateData.image = uploadedImageUrl;
+
+            } catch (error) {
+                throw new Error("Image update failed");
+            }
+        }
         const area = await Area.findByIdAndUpdate(
             id,
             { ...updateData, updatedAt: new Date() },
@@ -271,15 +298,15 @@ export class AreaService {
         const existing = await Area.findOne(query);
         return !existing;
     }
-    
 
-    async searchAreaByName(name: string): Promise<Response|any> {
-       const result=await Area.find({
-        name:{$regex:name,$options:'i'}
-       })
-       if(!result){
-        throw new ApiError(400,"Area not found with this keyword");
-       }
-       return result;
+
+    async searchAreaByName(name: string): Promise<Response | any> {
+        const result = await Area.find({
+            name: { $regex: name, $options: 'i' }
+        })
+        if (!result) {
+            throw new ApiError(400, "Area not found with this keyword");
+        }
+        return result;
     }
 }

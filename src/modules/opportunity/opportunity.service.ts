@@ -147,15 +147,30 @@ export class OpportunityService {
                 throw new Error("Another opportunity with this title already exists");
             }
         }
-        let finalImages = [...opportunity.images];
-        if (updateDto?.deleteImages && Array.isArray(updateDto.deleteImages)) {
-            for (const img of updateDto.deleteImages) {
-                finalImages = finalImages.filter(i => i !== img);
+        console.log("delete-----------", updateDto.deleteImages);
 
-                // 🔥 delete from cloudinary
-                const publicId = img.split("/").pop()?.split(".")[0];
-                if (publicId) {
-                    await cloudinary.uploader.destroy(`kaaya/${publicId}`);
+        let finalImages = [...opportunity.images];
+
+        if (updateDto?.deleteImages) {
+            let deleteImages = updateDto.deleteImages;
+
+            // handle string case (form-data)
+            if (typeof deleteImages === "string") {
+                deleteImages = JSON.parse(deleteImages);
+            }
+
+            if (Array.isArray(deleteImages)) {
+                for (const img of deleteImages) {
+
+                    finalImages = finalImages.filter(i => i !== img);
+
+                    const parts = img.split("/");
+                    const publicId = parts.slice(-2).join("/").split(".")[0];
+                    let result;
+                    if (publicId) {
+                        result = await cloudinary.uploader.destroy(publicId)
+                    }
+                    console.log("DELETE RESULT:", result);
                 }
             }
         }
