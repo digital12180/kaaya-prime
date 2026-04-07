@@ -7,7 +7,7 @@ export interface IBlog extends Document {
     image?: string;
     metaTitle?: string;
     metaDescription?: string;
-    status: "PUBLISHED" | "DRAFT";
+    status: "PUBLISHED" | "DRAFT"|"ARCHIVED";
     createdAt: Date;
     updatedAt: Date;
 }
@@ -54,7 +54,7 @@ const BlogSchema: Schema<IBlog> = new Schema(
 
         status: {
             type: String,
-            enum: ["PUBLISHED", "DRAFT"],
+            enum: ["PUBLISHED", "DRAFT","ARCHIVED"],
             default: "DRAFT",
             index: true, // 🔥 filter published blogs
         },

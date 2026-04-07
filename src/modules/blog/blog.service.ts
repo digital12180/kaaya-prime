@@ -1,18 +1,19 @@
 // services/blog.service.ts
 import mongoose from "mongoose";
 import { Blog } from "./blog.model.js";
-import type{
+import type {
   ICreateBlogDto,
   IUpdateBlogDto,
   BlogResponseDto,
   IPaginationDto
 } from "./blog.dto.js";
-import {generateSlug} from "./blog.dto.js"
+import { generateSlug } from "./blog.dto.js"
+import cloudinary, { uploadToCloudinary } from "../../config/cloudinary.js";
 
 export class BlogService {
 
   // Create a new blog
-  async createBlog(createDto: ICreateBlogDto): Promise<BlogResponseDto|any> {
+  async createBlog(createDto: ICreateBlogDto, file: Express.Multer.File): Promise<BlogResponseDto | any> {
     try {
       // Generate slug from title
       const slug = generateSlug(createDto.title);
@@ -31,7 +32,15 @@ export class BlogService {
       if (existingTitle) {
         throw new Error("A blog with this title already exists");
       }
+      if (!file) {
+        throw new Error("Image Required");
+      }
 
+      const imageUrl = await uploadToCloudinary(file.buffer);
+      if (!imageUrl) {
+        throw new Error("Error when uploading file on cloudinary");
+      }
+      createDto.image = imageUrl;
       // Set default meta title and description if not provided
       const blogData = {
         ...createDto,
@@ -104,7 +113,7 @@ export class BlogService {
   }
 
   // Get blog by ID
-  async getBlogById(id: string): Promise<BlogResponseDto|any> {
+  async getBlogById(id: string): Promise<BlogResponseDto | any> {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new Error("Invalid blog ID format");
     }
@@ -118,7 +127,7 @@ export class BlogService {
   }
 
   // Get blog by slug (for SEO-friendly URLs)
-  async getBlogBySlug(slug: string): Promise<BlogResponseDto|any> {
+  async getBlogBySlug(slug: string): Promise<BlogResponseDto | any> {
     if (!slug || typeof slug !== 'string') {
       throw new Error("Invalid slug format");
     }
@@ -178,7 +187,7 @@ export class BlogService {
   }
 
   // Update blog
-  async updateBlog(id: string, updateDto: IUpdateBlogDto): Promise<BlogResponseDto|any> {
+  async updateBlog(id: string, updateDto: IUpdateBlogDto, file?: Express.Multer.File): Promise<BlogResponseDto | any> {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new Error("Invalid blog ID format");
     }
@@ -225,7 +234,22 @@ export class BlogService {
     if (updateDto.content && !updateDto.metaDescription) {
       updateData.metaDescription = updateDto.content.substring(0, 160).replace(/<[^>]*>/g, '');
     }
-
+    if (file) {
+      try {
+        const newImageUrl = await uploadToCloudinary(file.buffer);
+        if (existingBlog?.image) {
+          const parts = existingBlog.image.split('/');
+          const fileName = parts[parts.length - 1];
+          const publicId = fileName?.split(".")[0];
+          if (publicId) {
+            const result = await cloudinary.uploader.destroy(`kaaya/${publicId}`);
+          }
+        }
+        updateData.image = newImageUrl;
+      } catch (error) {
+        throw new Error("Image update failed");
+      }
+    }
     const blog = await Blog.findByIdAndUpdate(
       id,
       { ...updateData, updatedAt: new Date() },

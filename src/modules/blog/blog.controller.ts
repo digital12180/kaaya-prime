@@ -26,8 +26,8 @@ export class BlogController {
                 });
                 return;
             }
-
-            const blog = await this.blogService.createBlog(req.body);
+            const file=req.file as Express.Multer.File;
+            const blog = await this.blogService.createBlog(req.body,file);
             res.status(201).json({
                 success: true,
                 message: "Blog created successfully",
@@ -197,8 +197,8 @@ export class BlogController {
                 });
                 return;
             }
-
-            const blog = await this.blogService.updateBlog(id as string, req.body);
+             const file=req.file as Express.Multer.File;
+            const blog = await this.blogService.updateBlog(id as string, req.body,file);
             res.status(200).json({
                 success: true,
                 message: "Blog updated successfully",
