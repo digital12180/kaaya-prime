@@ -31,7 +31,9 @@ export class OpportunityService {
             // ✅ Validate images properly
             if (!files || files.length === 0) {
                 throw new Error("At least one image is required");
-            }
+            } 
+            console.log("----",files);
+            
 
             // ✅ Upload multiple images
             const imageUrls: any = await Promise.all(

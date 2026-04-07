@@ -2,7 +2,7 @@
 
 export interface ICreateOpportunityDto {
     title: string;
-    slug:string;
+    slug?:string;
     description: string;
     location: string;
     images?: string[];
