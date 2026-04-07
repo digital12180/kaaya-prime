@@ -2,9 +2,10 @@ import mongoose, { Document, Schema } from "mongoose";
 
 export interface IOpportunity extends Document {
   title: string;
+  slug: string;
   description: string;
   location: string;
-  image: string;
+  images: string[];
   status: "ACTIVE" | "UPCOMING" | "SOLD OUT" | "UNDER REVIEW";
   createdAt: Date;
   updatedAt: Date;
@@ -18,7 +19,10 @@ const OpportunitySchema: Schema<IOpportunity> = new Schema(
       trim: true,
       index: true, // 🔥 search optimization
     },
-
+    slug: {
+      type: String,
+      trim: true,
+    },
     description: {
       type: String,
       required: true,
@@ -30,11 +34,11 @@ const OpportunitySchema: Schema<IOpportunity> = new Schema(
       trim: true,
       index: true, // 🔥 filter by city/location
     },
-    image:
-    {
-      type: String,
-      trim: true
-    },
+    images:
+      [{
+        type: String,
+        trim: true
+      }],
     status: {
       type: String,
       enum: ["ACTIVE", "UPCOMING", "SOLD OUT", "UNDER REVIEW"],

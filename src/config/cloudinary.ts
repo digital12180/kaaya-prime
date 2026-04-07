@@ -15,7 +15,7 @@ export const uploadToCloudinary = (fileBuffer: Buffer) => {
     cloudinary.uploader
       .upload_stream(
         {
-          folder: "vakeel", // your folder name
+          folder: "kaaya", // your folder name
         },
         (error, result) => {
           if (error) return reject(error);

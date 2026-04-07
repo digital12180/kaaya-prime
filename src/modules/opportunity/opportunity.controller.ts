@@ -18,23 +18,30 @@ export class OpportunityController {
     }
 
     // Create opportunity
-    createOpportunity = async (req: Request, res: Response): Promise<void> => {
-        try {
-            const opportunity = await this.opportunityService.createOpportunity(req.body);
-            res.status(201).json({
-                success: true,
-                message: "Opportunity created successfully",
-                data: opportunity
-            });
-        } catch (error: any) {
-            const status = error.message.includes("already exists") ? 409 : 400;
-            res.status(status).json({
-                success: false,
-                message: error.message || "Failed to create opportunity",
-                error: process.env.NODE_ENV === "development" ? error.stack : undefined
-            });
-        }
-    };
+   createOpportunity = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const files = req.files as Express.Multer.File[]; // ✅ proper casting
+
+        const opportunity = await this.opportunityService.createOpportunity(
+            req.body,
+            files
+        );
+
+        res.status(201).json({
+            success: true,
+            message: "Opportunity created successfully",
+            data: opportunity
+        });
+    } catch (error: any) {
+        const status = error.message?.includes("already exists") ? 409 : 400;
+
+        res.status(status).json({
+            success: false,
+            message: error.message || "Failed to create opportunity",
+            error: process.env.NODE_ENV === "development" ? error.stack : undefined
+        });
+    }
+};
 
     // Get all opportunities with pagination
     getAllOpportunities = async (req: Request, res: Response): Promise<void> => {

@@ -8,24 +8,48 @@ import type {
     IPaginationDto
 } from "./opportunity.dto.js";
 import { ApiError } from "../../common/exceptions/apiError.js";
-
+import { uploadToCloudinary } from "../../config/cloudinary.js";
+import { generateSlug } from "../area/area.dto.js";
 export class OpportunityService {
 
     // Create a new opportunity
-    async createOpportunity(createDto: ICreateOpportunityDto): Promise<any | Response> {
+    async createOpportunity(
+        createDto: ICreateOpportunityDto,
+        files: Express.Multer.File[]
+    ): Promise<any> {
         try {
-            // Check if opportunity with same title exists
+            const slug = generateSlug(createDto.title);
+            // ✅ Check duplicate title (case-insensitive)
             const existingOpportunity = await Opportunity.findOne({
-                title: { $regex: new RegExp(`^${createDto.title}$`, 'i') }
+                title: { $regex: new RegExp(`^${createDto.title}$`, "i") }
             });
 
             if (existingOpportunity) {
                 throw new Error("An opportunity with this title already exists");
             }
 
+            // ✅ Validate images properly
+            if (!files || files.length === 0) {
+                throw new Error("At least one image is required");
+            }
+
+            // ✅ Upload multiple images
+            const imageUrls: any = await Promise.all(
+                files.map(async (file) => {
+                    return await uploadToCloudinary(file.buffer);
+                })
+            );
+
+            // ✅ Assign images
+            createDto.images = imageUrls;
+            createDto.slug=slug;
+
+            // ✅ Save opportunity
             const opportunity = new Opportunity(createDto);
             await opportunity.save();
+
             return opportunity;
+
         } catch (error: any) {
             if (error.code === 11000) {
                 throw new Error("Duplicate opportunity detected");

@@ -124,12 +124,12 @@ export class UserController {
     // Search users
     searchUsers = async (req: Request, res: Response): Promise<void> => {
         try {
-            const { q } = req.query;
+            const { name } = req.query;
             
-            if (!q || typeof q !== 'string') {
+            if (!name || typeof name !== 'string') {
                 res.status(400).json({
                     success: false,
-                    message: "Search query parameter 'q' is required"
+                    message: "Search query parameter 'name' is required"
                 });
                 return;
             }
@@ -140,10 +140,10 @@ export class UserController {
                 role: req.query.role as any
             };
 
-            const result = await this.userService.searchUsers(q as string, paginationDto);
+            const result = await this.userService.searchUsers(name as string, paginationDto);
             res.status(200).json({
                 success: true,
-                message: `Users matching "${q}" retrieved successfully`,
+                message: `Users matching "${name}" retrieved successfully`,
                 data: result.users,
                 pagination: {
                     page: result.page,

@@ -2,9 +2,10 @@
 
 export interface ICreateOpportunityDto {
     title: string;
+    slug:string;
     description: string;
     location: string;
-    image?: string;
+    images?: string[];
     status?: "ACTIVE" | "UPCOMING" | "SOLD OUT" | "UNDER REVIEW";
 }
 
@@ -12,7 +13,7 @@ export interface IUpdateOpportunityDto {
     title?: string;
     description?: string;
     location?: string;
-    image?: string;
+    images?: string[];
     status?: "ACTIVE" | "UPCOMING" | "SOLD OUT" | "UNDER REVIEW";
 }
 
@@ -21,7 +22,7 @@ export interface IOpportunityResponseDto {
     title: string;
     description: string;
     location: string;
-    image: string;
+    images: string[];
     status: "ACTIVE" | "UPCOMING" | "SOLD OUT" | "UNDER REVIEW";
     createdAt: Date;
     updatedAt: Date;
@@ -40,7 +41,7 @@ export class OpportunityResponseDto implements IOpportunityResponseDto {
     title: string;
     description: string;
     location: string;
-    image: string;
+    images: string[];
     status: "ACTIVE" | "UPCOMING" | "SOLD OUT" | "UNDER REVIEW";
     createdAt: Date;
     updatedAt: Date;
@@ -50,7 +51,7 @@ export class OpportunityResponseDto implements IOpportunityResponseDto {
         this.title = opportunity.title;
         this.description = opportunity.description;
         this.location = opportunity.location;
-        this.image = opportunity.image || "";
+        this.images = opportunity.images || "";
         this.status = opportunity.status;
         this.createdAt = opportunity.createdAt;
         this.updatedAt = opportunity.updatedAt;
