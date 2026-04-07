@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { Lead } from "./lead.model.js";
 import type { CreateLeadDto, UpdateLeadDto, LeadResponseDto, PaginationDto } from "./lead.dto.js";
 import { ApiError } from "../../common/exceptions/apiError.js";
+import { emailService } from "../../common/services/email.service.js";
 
 export class LeadService {
     // Create a new lead
@@ -19,9 +20,10 @@ export class LeadService {
             if (existingLead) {
                 throw new Error("Lead with this email or phone already exists");
             }
-
+            
             const lead = new Lead(createLeadDto);
             await lead.save();
+            // await emailService.sendLeadCreatedEmail(createLeadDto.email,createLeadDto.email)
             return lead;
         } catch (error: any) {
             if (error.code === 11000) {

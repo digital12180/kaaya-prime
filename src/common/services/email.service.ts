@@ -102,7 +102,7 @@ class EmailService {
       return true;
     }
   }
-  
+
   async sendPasswordResetEmail(email: string, name: string) {
     return this.sendEmail(
       email,
@@ -114,6 +114,32 @@ class EmailService {
       <br/>
       <p>Thanks,<br/>Kaaya Prime Team</p>
       `
+    );
+  }
+
+  async sendLeadCreatedEmail(
+    email: string,
+    name: string,
+    leadName: string,
+    createdBy: string
+  ) {
+    return this.sendEmail(
+      email,
+      "🎯 New Lead Created",
+      `
+    <h2>Hello ${name},</h2>
+    
+    <p>A new lead has been successfully created in your account.</p>
+    
+    <p><b>Lead Name:</b> ${leadName}</p>
+    <p><b>Created By:</b> ${createdBy}</p>
+    
+    <p>You can now review and manage this lead by logging into your dashboard.</p>
+    
+    <br/>
+    
+    <p>Best regards,<br/>Kaaya Prime Team</p>
+    `
     );
   }
 }

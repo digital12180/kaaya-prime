@@ -4,7 +4,7 @@ export interface ICreateReportDto {
     title: string;
     description: string;
     fileUrl: string;
-    image?: string;
+    image: string;
     status?: "PUBLISHED" | "DRAFT" | "ARCHIVED";
 }
 
@@ -23,6 +23,7 @@ export interface IUpdateStatusDto {
 export interface IReportResponseDto {
     _id: string;
     title: string;
+    slug: string;
     description: string;
     fileUrl: string;
     image: string;
@@ -43,6 +44,7 @@ export interface IPaginationDto {
 export class ReportResponseDto implements IReportResponseDto {
     _id: string;
     title: string;
+    slug: string;
     description: string;
     fileUrl: string;
     image: string;
@@ -53,6 +55,7 @@ export class ReportResponseDto implements IReportResponseDto {
     constructor(report: any) {
         this._id = report._id.toString();
         this.title = report.title;
+        this.slug = report.slug;;
         this.description = report.description;
         this.fileUrl = report.fileUrl;
         this.image = report.image || "";
