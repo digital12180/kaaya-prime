@@ -14,6 +14,7 @@ export interface IUpdateOpportunityDto {
     description?: string;
     location?: string;
     images?: string[];
+    deleteImages?:string[],
     status?: "ACTIVE" | "UPCOMING" | "SOLD OUT" | "UNDER REVIEW";
 }
 
