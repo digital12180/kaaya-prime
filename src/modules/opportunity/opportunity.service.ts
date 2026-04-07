@@ -154,10 +154,13 @@ export class OpportunityService {
         if (updateDto?.deleteImages) {
             let deleteImages = updateDto.deleteImages;
 
-            // handle string case (form-data)
-            if (typeof deleteImages === "string") {
-                deleteImages = JSON.parse(deleteImages);
+            if (!Array.isArray(deleteImages)) {
+                deleteImages = [deleteImages];
             }
+            // handle string case (form-data)
+            // if (typeof deleteImages === "string") {
+            //     deleteImages = JSON.parse(deleteImages);
+            // }
 
             if (Array.isArray(deleteImages)) {
                 for (const img of deleteImages) {
