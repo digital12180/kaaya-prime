@@ -116,13 +116,14 @@ export class OpportunityController {
     updateOpportunity = async (req: Request, res: Response): Promise<any> => {
         try {
             const { id } = req.params;
-            if (!req.body || Object.keys(req.body).length === 0) {
+            if (!req.body) {
                 return res.status(400).json({
                     success: false,
                     message: "Request body is required"
                 });
             }
-            const opportunity = await this.opportunityService.updateOpportunity(id as string, req.body);
+            const files=req.files as Express.Multer.File[];
+            const opportunity = await this.opportunityService.updateOpportunity(id as string, req.body,files);
             return res.status(200).json({
                 success: true,
                 message: "Opportunity updated successfully",

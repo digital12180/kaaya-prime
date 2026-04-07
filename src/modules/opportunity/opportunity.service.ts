@@ -10,6 +10,7 @@ import type {
 import { ApiError } from "../../common/exceptions/apiError.js";
 import { uploadToCloudinary } from "../../config/cloudinary.js";
 import { generateSlug } from "../area/area.dto.js";
+import cloudinary from "../../config/cloudinary.js";
 export class OpportunityService {
 
     // Create a new opportunity
@@ -31,9 +32,9 @@ export class OpportunityService {
             // ✅ Validate images properly
             if (!files || files.length === 0) {
                 throw new Error("At least one image is required");
-            } 
-            console.log("----",files);
-            
+            }
+            console.log("----", files);
+
 
             // ✅ Upload multiple images
             const imageUrls: any = await Promise.all(
@@ -44,7 +45,7 @@ export class OpportunityService {
 
             // ✅ Assign images
             createDto.images = imageUrls;
-            createDto.slug=slug;
+            createDto.slug = slug;
 
             // ✅ Save opportunity
             const opportunity = new Opportunity(createDto);
@@ -124,7 +125,7 @@ export class OpportunityService {
     }
 
     // Update opportunity
-    async updateOpportunity(id: string, updateDto: IUpdateOpportunityDto): Promise<any> {
+    async updateOpportunity(id: string, updateDto: IUpdateOpportunityDto, files?: Express.Multer.File[]): Promise<any> {
         if (!updateDto) {
             throw new Error("Update data is required");
         }
@@ -132,7 +133,10 @@ export class OpportunityService {
         if (!mongoose.Types.ObjectId.isValid(id)) {
             throw new Error("Invalid opportunity ID format");
         }
-
+        const opportunity = await Opportunity.findById(id);
+        if (!opportunity) {
+            throw new Error("Opportunity not found");
+        }
         if (updateDto.title) {
             const existingOpportunity = await Opportunity.findOne({
                 _id: { $ne: id },
@@ -143,18 +147,39 @@ export class OpportunityService {
                 throw new Error("Another opportunity with this title already exists");
             }
         }
+        let finalImages = [...opportunity.images];
+        if (updateDto?.deleteImages && Array.isArray(updateDto.deleteImages)) {
+            for (const img of updateDto.deleteImages) {
+                finalImages = finalImages.filter(i => i !== img);
 
-        const opportunity = await Opportunity.findByIdAndUpdate(
+                // 🔥 delete from cloudinary
+                const publicId = img.split("/").pop()?.split(".")[0];
+                if (publicId) {
+                    await cloudinary.uploader.destroy(`kaaya/${publicId}`);
+                }
+            }
+        }
+
+        if (files && files.length > 0) {
+            const newImages = await Promise.all(
+                files.map(file => uploadToCloudinary(file.buffer))
+            );
+
+            finalImages.push(...newImages);
+        }
+        updateDto.images = finalImages;
+
+        const updated = await Opportunity.findByIdAndUpdate(
             id,
             { ...updateDto, updatedAt: new Date() },
             { new: true, runValidators: true }
         ).lean();
 
-        if (!opportunity) {
+        if (!updated) {
             throw new Error("Opportunity not found");
         }
 
-        return opportunity;
+        return updated;
     }
 
     // Delete opportunity
