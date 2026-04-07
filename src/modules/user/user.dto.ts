@@ -55,13 +55,13 @@ export class UserResponseDto implements IUserResponseDto {
 export const validateCreateUser = (data: any): string[] => {
     const errors: string[] = [];
 
-    if (!data.username || typeof data.username !== 'string' || data.username.trim().length === 0) {
-        errors.push("Username is required and must be a non-empty string");
-    } else if (data.username.length < 3 || data.username.length > 30) {
-        errors.push("Username must be between 3 and 30 characters");
-    } else if (!/^[a-zA-Z0-9_]+$/.test(data.username)) {
-        errors.push("Username can only contain letters, numbers, and underscores");
-    }
+    // if (!data.username || typeof data.username !== 'string' || data.username.trim().length === 0) {
+    //     errors.push("Username is required and must be a non-empty string");
+    // } else if (data.username.length < 3 || data.username.length > 30) {
+    //     errors.push("Username must be between 3 and 30 characters");
+    // } else if (!/^[a-zA-Z0-9_]+$/.test(data.username)) {
+    //     errors.push("Username can only contain letters, numbers, and underscores");
+    // }
 
     if (!data.email || typeof data.email !== 'string' || data.email.trim().length === 0) {
         errors.push("Email is required and must be a non-empty string");
