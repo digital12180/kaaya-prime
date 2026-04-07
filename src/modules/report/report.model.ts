@@ -2,10 +2,11 @@ import mongoose, { Document, Schema } from "mongoose";
 
 export interface IReport extends Document {
   title: string;
+  slug: string;
   description: string;
   fileUrl: string;
   image?: string;
-  status: "PUBLISHED" | "DRAFT"|"ARCHIVED";
+  status: "PUBLISHED" | "DRAFT" | "ARCHIVED";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -16,6 +17,12 @@ const ReportSchema: Schema<IReport> = new Schema(
       type: String,
       required: true,
       trim: true,
+      index: true,
+    },
+    slug: {
+      type: String,
+      unique: true,
+      required: true,
       index: true,
     },
     description: {
@@ -32,7 +39,7 @@ const ReportSchema: Schema<IReport> = new Schema(
     },
     status: {
       type: String,
-      enum: ["PUBLISHED" ,"DRAFT","ARCHIVED"],
+      enum: ["PUBLISHED", "DRAFT", "ARCHIVED"],
       default: "DRAFT",
       index: true,
     },

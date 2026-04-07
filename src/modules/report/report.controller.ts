@@ -1,5 +1,5 @@
 // controllers/report.controller.ts
-import type{ Request, Response } from "express";
+import type { Request, Response } from "express";
 import { ReportService } from "./report.service.js";
 import {
     validateCreateReport,
@@ -27,8 +27,22 @@ export class ReportController {
                 });
                 return;
             }
+            const files = req.files as {
+                image: Express.Multer.File[];
+                fileUrl: Express.Multer.File[];
+            };
 
-            const report = await this.reportService.createReport(req.body);
+            if (!files?.image || !files?.fileUrl) {
+                res.status(400).json({
+                    success: false,
+                    message: "Both image and PDF are required"
+                });
+                return;
+            }
+
+            const imageFile = files.image[0] as Express.Multer.File;
+            const pdfFile = files.fileUrl[0] as Express.Multer.File;
+            const report = await this.reportService.createReport(req.body, imageFile, pdfFile);
             res.status(201).json({
                 success: true,
                 message: "Report created successfully",
@@ -127,7 +141,7 @@ export class ReportController {
     searchReportsByTitle = async (req: Request, res: Response): Promise<void> => {
         try {
             const { title } = req.query;
-            
+
             if (!title || typeof title !== 'string') {
                 res.status(400).json({
                     success: false,
@@ -167,7 +181,7 @@ export class ReportController {
     updateReport = async (req: Request, res: Response): Promise<void> => {
         try {
             const { id } = req.params;
-            
+
             // Validate update data
             const validationErrors = validateUpdateReport(req.body);
             if (validationErrors.length > 0) {
@@ -187,7 +201,7 @@ export class ReportController {
             });
         } catch (error: any) {
             const status = error.message === "Invalid report ID format" ? 400 :
-                          error.message.includes("already exists") ? 409 : 404;
+                error.message.includes("already exists") ? 409 : 404;
             res.status(status).json({
                 success: false,
                 message: error.message || "Failed to update report",
@@ -200,7 +214,7 @@ export class ReportController {
     updateReportStatus = async (req: Request, res: Response): Promise<void> => {
         try {
             const { id } = req.params;
-            
+
             // Validate status data
             const validationErrors = validateUpdateStatus(req.body);
             if (validationErrors.length > 0) {
@@ -322,7 +336,7 @@ export class ReportController {
     bulkDeleteReports = async (req: Request, res: Response): Promise<void> => {
         try {
             const { ids } = req.body;
-            
+
             if (!ids || !Array.isArray(ids) || ids.length === 0) {
                 res.status(400).json({
                     success: false,

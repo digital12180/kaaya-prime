@@ -1,20 +1,23 @@
 // services/report.service.ts
 import mongoose from "mongoose";
 import { Report } from "./report.model.js";
-import type{
+import type {
     ICreateReportDto,
     IUpdateReportDto,
     IUpdateStatusDto,
     ReportResponseDto,
     IPaginationDto
 } from "./report.dto.js";
+import { uploadToCloudinary } from "../../config/cloudinary.js";
+import { generateSlug } from "../area/area.dto.js";
 
 export class ReportService {
 
     // Create a new report
-    async createReport(createDto: ICreateReportDto): Promise<ReportResponseDto|any> {
+    async createReport(createDto: ICreateReportDto, imageFile: Express.Multer.File, pdfFile: Express.Multer.File): Promise<ReportResponseDto | any> {
         try {
             // Check if report with same title exists
+            const slug = generateSlug(createDto.title);
             const existingReport = await Report.findOne({
                 title: { $regex: new RegExp(`^${createDto.title}$`, 'i') }
             });
@@ -22,12 +25,32 @@ export class ReportService {
             if (existingReport) {
                 throw new Error("A report with this title already exists");
             }
+            if (!imageFile || !pdfFile) {
+                throw new Error("Both image and PDF are required");
+            }
 
+            // ✅ Validate types
+            if (!imageFile.mimetype.startsWith("image/")) {
+                throw new Error("Invalid image file");
+            }
+
+            if (pdfFile.mimetype !== "application/pdf") {
+                throw new Error("Invalid PDF file");
+            }
+            const imageUrl = await uploadToCloudinary(imageFile.buffer, "image");
+            const pdfUrl = await uploadToCloudinary(pdfFile.buffer, "image");
+
+            if (!imageUrl || !pdfUrl) {
+                throw new Error("File upload failed");
+            }
             const report = new Report({
                 ...createDto,
+                slug,
+                image: imageUrl,
+                fileUrl: pdfUrl,
                 status: createDto.status || "DRAFT"
             });
-            
+
             await report.save();
             return report;
         } catch (error: any) {
@@ -90,7 +113,7 @@ export class ReportService {
     }
 
     // Get report by ID
-    async getReportById(id: string): Promise<ReportResponseDto|any> {
+    async getReportById(id: string): Promise<ReportResponseDto | any> {
         if (!mongoose.Types.ObjectId.isValid(id)) {
             throw new Error("Invalid report ID format");
         }
@@ -150,7 +173,7 @@ export class ReportService {
     }
 
     // Update report
-    async updateReport(id: string, updateDto: IUpdateReportDto): Promise<ReportResponseDto|any> {
+    async updateReport(id: string, updateDto: IUpdateReportDto): Promise<ReportResponseDto | any> {
         if (!mongoose.Types.ObjectId.isValid(id)) {
             throw new Error("Invalid report ID format");
         }
@@ -166,7 +189,7 @@ export class ReportService {
                 _id: { $ne: id },
                 title: { $regex: new RegExp(`^${updateDto.title}$`, 'i') }
             });
-            
+
             if (titleExists) {
                 throw new Error("Another report with this title already exists");
             }
@@ -186,7 +209,7 @@ export class ReportService {
     }
 
     // Update report status only
-    async updateReportStatus(id: string, statusDto: IUpdateStatusDto): Promise<ReportResponseDto|any> {
+    async updateReportStatus(id: string, statusDto: IUpdateStatusDto): Promise<ReportResponseDto | any> {
         if (!mongoose.Types.ObjectId.isValid(id)) {
             throw new Error("Invalid report ID format");
         }
@@ -222,9 +245,9 @@ export class ReportService {
     }
 
     // Get reports by status
-    async getReportsByStatus(status: string): Promise<ReportResponseDto[]|any> {
+    async getReportsByStatus(status: string): Promise<ReportResponseDto[] | any> {
         const validStatuses = ["PUBLISHED", "DRAFT", "ARCHIVED"];
-        
+
         if (!validStatuses.includes(status)) {
             throw new Error(`Invalid status. Must be one of: ${validStatuses.join(", ")}`);
         }
@@ -261,7 +284,7 @@ export class ReportService {
     // Bulk delete reports
     async bulkDeleteReports(ids: string[]): Promise<{ deletedCount: number; deletedIds: string[] }> {
         const validIds = ids.filter(id => mongoose.Types.ObjectId.isValid(id));
-        
+
         if (validIds.length === 0) {
             throw new Error("No valid report IDs provided");
         }
