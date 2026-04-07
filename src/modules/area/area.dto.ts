@@ -1,9 +1,12 @@
 // dtos/area.dto.ts
 
+import type mongoose from "mongoose";
+
 export interface ICreateAreaDto {
     name: string;
     description: string;
-    image?: string;
+    opportunities: mongoose.Types.ObjectId[];
+    image: string;
     metaTitle?: string;
     metaDescription?: string;
 }
@@ -11,6 +14,7 @@ export interface ICreateAreaDto {
 export interface IUpdateAreaDto {
     name?: string;
     description?: string;
+    opportunities?: mongoose.Types.ObjectId[];
     image?: string;
     metaTitle?: string;
     metaDescription?: string;
@@ -20,6 +24,7 @@ export interface IAreaResponseDto {
     _id: string;
     name: string;
     slug: string;
+    opportunities: mongoose.Types.ObjectId[];
     description: string;
     image: string;
     metaTitle: string;
@@ -36,29 +41,30 @@ export interface IPaginationDto {
     sortOrder?: 'asc' | 'desc';
 }
 
-export class AreaResponseDto implements IAreaResponseDto {
-    _id: string;
-    name: string;
-    slug: string;
-    description: string;
-    image: string;
-    metaTitle: string;
-    metaDescription: string;
-    createdAt: Date;
-    updatedAt: Date;
+// export class AreaResponseDto implements IAreaResponseDto {
+//     _id: string;
+//     name: string;
+//     slug: string;
+//     description: string;
+//     opportunities:mongoose.Types.ObjectId[];
+//     image: string;
+//     metaTitle: string;
+//     metaDescription: string;
+//     createdAt: Date;
+//     updatedAt: Date;
 
-    constructor(area: any) {
-        this._id = area._id.toString();
-        this.name = area.name;
-        this.slug = area.slug;
-        this.description = area.description;
-        this.image = area.image || "";
-        this.metaTitle = area.metaTitle || "";
-        this.metaDescription = area.metaDescription || "";
-        this.createdAt = area.createdAt;
-        this.updatedAt = area.updatedAt;
-    }
-}
+//     constructor(area: any) {
+//         this._id = area._id.toString();
+//         this.name = area.name;
+//         this.slug = area.slug;
+//         this.description = area.description;
+//         this.image = area.image || "";
+//         this.metaTitle = area.metaTitle || "";
+//         this.metaDescription = area.metaDescription || "";
+//         this.createdAt = area.createdAt;
+//         this.updatedAt = area.updatedAt;
+//     }
+// }
 
 // Generate slug from name
 export const generateSlug = (name: string): string => {

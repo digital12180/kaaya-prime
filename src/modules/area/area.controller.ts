@@ -26,8 +26,15 @@ export class AreaController {
                 });
                 return;
             }
-
-            const area = await this.areaService.createArea(req.body);
+            const file = req.file as Express.Multer.File;
+            if (!file) {
+                res.status(400).json({
+                    success: false,
+                    message: "File required",
+                });
+                return;
+            }
+            const area = await this.areaService.createArea(req.body, file);
             res.status(201).json({
                 success: true,
                 message: "Area created successfully",
@@ -155,8 +162,8 @@ export class AreaController {
                 });
                 return;
             }
-
-            const area = await this.areaService.updateArea(id as string, req.body);
+            const file=req.file as Express.Multer.File;
+            const area = await this.areaService.updateArea(id as string, req.body,file);
             res.status(200).json({
                 success: true,
                 message: "Area updated successfully",
@@ -269,7 +276,7 @@ export class AreaController {
             });
         }
     };
-    searchAreaByName= async (req: Request, res: Response): Promise<void> => {
+    searchAreaByName = async (req: Request, res: Response): Promise<void> => {
         try {
             const { name } = req.query;
 
@@ -284,7 +291,7 @@ export class AreaController {
             const areas = await this.areaService.searchAreaByName(name);
             res.status(200).json({
                 success: true,
-                data:areas 
+                data: areas
             });
         } catch (error: any) {
             res.status(500).json({
