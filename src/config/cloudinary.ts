@@ -8,7 +8,7 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY!,
   api_secret: process.env.CLOUDINARY_API_SECRET!,
 });
-type ResourceType = "image" | "raw" | "video";
+type ResourceType = "image" | "raw" | "video"|"auto";
 
 export default cloudinary;
 export const uploadToCloudinary = (

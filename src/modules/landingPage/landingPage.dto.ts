@@ -1,9 +1,10 @@
 // dtos/landingPage.dto.ts
-
+import mongoose from "mongoose";
 export interface ICreateLandingPageDto {
     title: string;
     content: string;
-    slug:string;
+    opportunity: mongoose.Types.ObjectId;
+    slug: string;
     formType?: "CONTACT" | "CONSULTATION" | "DOWNLOAD" | "NONE";
     status?: "PUBLISHED" | "DRAFT" | "DISABLED";
 }
@@ -11,7 +12,7 @@ export interface ICreateLandingPageDto {
 export interface IUpdateLandingPageDto {
     title?: string;
     content?: string;
-    slug:string;
+    slug?: string;
     formType?: "CONTACT" | "CONSULTATION" | "DOWNLOAD" | "NONE";
     status?: "PUBLISHED" | "DRAFT" | "DISABLED";
 }
@@ -24,6 +25,7 @@ export interface ILandingPageResponseDto {
     _id: string;
     title: string;
     slug: string;
+    opportunity: mongoose.Types.ObjectId;
     content: string;
     formType: "CONTACT" | "CONSULTATION" | "DOWNLOAD" | "NONE";
     status: "PUBLISHED" | "DRAFT" | "DISABLED";
@@ -46,6 +48,7 @@ export class LandingPageResponseDto implements ILandingPageResponseDto {
     title: string;
     slug: string;
     content: string;
+    opportunity: mongoose.Types.ObjectId;
     formType: "CONTACT" | "CONSULTATION" | "DOWNLOAD" | "NONE";
     status: "PUBLISHED" | "DRAFT" | "DISABLED";
     createdAt: Date;
@@ -55,6 +58,7 @@ export class LandingPageResponseDto implements ILandingPageResponseDto {
         this._id = landingPage._id.toString();
         this.title = landingPage.title;
         this.slug = landingPage.slug;
+        this.opportunity=landingPage.opportunity;
         this.content = landingPage.content;
         this.formType = landingPage.formType;
         this.status = landingPage.status;
@@ -110,7 +114,7 @@ export const validateUpdateLandingPage = (data: any): string[] => {
             errors.push("Title must be between 3 and 200 characters");
         }
     }
-     if (data.slug !== undefined) {
+    if (data.slug !== undefined) {
         if (typeof data.slug !== 'string' || data.slug.trim().length === 0) {
             errors.push("slug must be a non-empty string if provided");
         } else if (data.slug.length < 3 || data.slug.length > 200) {
