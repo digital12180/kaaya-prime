@@ -11,7 +11,6 @@ const blogController = new BlogController();
 router.post("/create", verifyToken, EditorAndadmin, upload.single('image'), blogController.createBlog);
 router.get("/get-all", blogController.getAllBlogs);
 router.get("/published", verifyToken, EditorAndadmin, blogController.getPublishedBlogs);
-router.get("/statistics", verifyToken, EditorAndadmin, blogController.getBlogStatistics);
 router.get("/search/title", blogController.searchBlogsByTitle);
 router.get("/slug/:slug", verifyToken, EditorAndadmin, blogController.getBlogBySlug);
 router.get("/:id", blogController.getBlogById);
