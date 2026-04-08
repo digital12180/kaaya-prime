@@ -9,7 +9,7 @@ const areaController = new AreaController();
 
 // Area routes
 router.post("/create",verifyToken,adminOnly,upload.single('image'), areaController.createArea);
-router.get("/get-all",verifyToken, areaController.getAllAreas);
+router.get("/get-all", areaController.getAllAreas);
 router.get("/slug/:slug",verifyToken, areaController.getAreaBySlug);
 router.get("/:id",verifyToken, areaController.getAreaById);
 router.put("/:id",verifyToken,adminOnly,upload.single('image'), areaController.updateArea);
