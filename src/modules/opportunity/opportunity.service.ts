@@ -295,5 +295,17 @@ export class OpportunityService {
 
         return result;
     }
+    async getOpportunityBySlug(slug: string): Promise<Response | any> {
+        if (!slug || typeof slug !== 'string') {
+            throw new Error("Invalid slug format");
+        }
+
+        const opportunity = await Opportunity.findOne({ slug: slug }).lean();
+        if (!opportunity) {
+            throw new Error("opportunity not found or not published");
+        }
+
+        return opportunity;
+    }
 
 }

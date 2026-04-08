@@ -15,6 +15,7 @@ router.get("/status/:status",verifyToken, opportunityController.getOpportunities
 router.get("/:id",verifyToken, opportunityController.getOpportunityById);
 router.put("/:id",verifyToken,ManagerAndadmin,upload.array('images',5), opportunityController.updateOpportunity);
 router.delete("/:id",verifyToken,ManagerAndadmin, opportunityController.deleteOpportunity);
+router.post("/bulk-delete",verifyToken,ManagerAndadmin, opportunityController.bulkDeleteOpportunities);
 router.get("/search/title",verifyToken, opportunityController.searchOpportunity);
 
 
