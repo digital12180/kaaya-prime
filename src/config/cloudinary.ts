@@ -11,18 +11,21 @@ cloudinary.config({
 type ResourceType = "image" | "raw" | "video";
 
 export default cloudinary;
-export const uploadToCloudinary = (fileBuffer: Buffer, resourceType: ResourceType = "image"): Promise<string> => {
+export const uploadToCloudinary = (
+  fileBuffer: Buffer,
+  resourceType: ResourceType = "image",
+  fileName?: string
+): Promise<string> => {
   return new Promise((resolve, reject) => {
     cloudinary.uploader
       .upload_stream(
         {
           resource_type: resourceType,
           folder: "kaaya",
+          public_id: fileName as string, // ✅ IMPORTANT
         },
         (error, result) => {
           if (error) return reject(error);
-
-          // ✅ RETURN ONLY secure_url
           resolve(result?.secure_url || "");
         }
       )

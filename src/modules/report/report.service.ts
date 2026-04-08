@@ -38,7 +38,10 @@ export class ReportService {
                 throw new Error("Invalid PDF file");
             }
             const imageUrl = await uploadToCloudinary(imageFile.buffer, "image");
-            const pdfUrl = await uploadToCloudinary(pdfFile.buffer, "image");
+            const pdfUrl = await uploadToCloudinary(pdfFile.buffer, "raw");
+
+            // preview image
+            // const previewImage = pdfUrl.replace("/raw/upload/", "/image/upload/pg_1/");
 
             if (!imageUrl || !pdfUrl) {
                 throw new Error("File upload failed");

@@ -15,6 +15,14 @@ export class LeadController {
     // Create lead
     createLead = async (req: Request, res: Response): Promise<void> => {
         try {
+            const id = req.user.userId || req.user._id
+            if (!id) {
+                res.status(400).json({
+                    success: false,
+                    error: "Unauthorized User",
+                });
+            }
+
             const createLeadDto: CreateLeadDto = req.body;
             // Object.assign(createLeadDto, req.body);
 
@@ -35,7 +43,7 @@ export class LeadController {
             //     return;
             // }
 
-            const lead = await this.leadService.createLead(createLeadDto);
+            const lead = await this.leadService.createLead(createLeadDto,id);
             res.status(201).json({
                 success: true,
                 message: "Lead created successfully",
