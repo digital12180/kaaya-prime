@@ -1,6 +1,7 @@
 // services/landingPage.service.ts
 import mongoose from "mongoose";
 import { LandingPage } from "./landingPage.model.js";
+import { Opportunity } from "../opportunity/opportunity.model.js";
 import type {
     ICreateLandingPageDto,
     IUpdateLandingPageDto,
@@ -24,6 +25,12 @@ export class LandingPageService {
             if (!createDto.opportunity) {
                 throw new Error("Opportunity Required");
             }
+            console.log(createDto.opportunity);
+
+            const opportunity = await Opportunity.findById(createDto.opportunity);
+            if (!opportunity) {
+                throw new Error("Opportunity Not Found");
+            }
             // Check if title already exists (case-insensitive)
             const existingTitle = await LandingPage.findOne({
                 title: { $regex: new RegExp(`^${createDto.title}$`, 'i') }
@@ -41,6 +48,8 @@ export class LandingPageService {
 
             const landingPage = new LandingPage(landingPageData);
             await landingPage.save();
+            opportunity.landingPage.push(landingPage._id);
+            await opportunity.save();
             return landingPage;
         } catch (error: any) {
             if (error.code === 11000) {
@@ -235,6 +244,21 @@ export class LandingPageService {
             }
 
             updateData.slug = newSlug;
+        }
+        if (updateDto.opportunity && String(updateDto.opportunity) !== String(existingPage.opportunity)) {
+            // 1. Verify the NEW opportunity exists
+            const newOpportunity = await Opportunity.findById(updateDto.opportunity);
+            if (!newOpportunity) {
+                throw new Error("Opportunity Not Found");
+            }
+
+            if (existingPage.opportunity) {
+                await Opportunity.findByIdAndUpdate(existingPage.opportunity, {
+                    $pull: { landingPage: existingPage._id }
+                });
+            }
+            newOpportunity.landingPage.push(existingPage._id);
+            await newOpportunity.save();
         }
 
         const landingPage = await LandingPage.findByIdAndUpdate(
