@@ -11,7 +11,7 @@ const areaController = new AreaController();
 router.post("/create",verifyToken,adminOnly,upload.single('image'), areaController.createArea);
 router.get("/get-all", areaController.getAllAreas);
 router.get("/statistics",verifyToken,adminOnly, areaController.getAreaStatistics);
-router.get("/:slug",verifyToken, areaController.getAreaBySlug);
+router.get("/:slug", areaController.getAreaBySlug);
 router.get("/check-slug",verifyToken, areaController.checkSlugUniqueness);
 router.get("/:id",verifyToken, areaController.getAreaById);
 router.put("/:id",verifyToken,adminOnly,upload.single('image'), areaController.updateArea);
