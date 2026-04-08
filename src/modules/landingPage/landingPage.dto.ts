@@ -12,6 +12,7 @@ export interface ICreateLandingPageDto {
 export interface IUpdateLandingPageDto {
     title?: string;
     content?: string;
+    opportunity?: mongoose.Types.ObjectId;
     slug?: string;
     formType?: "CONTACT" | "CONSULTATION" | "DOWNLOAD" | "NONE";
     status?: "PUBLISHED" | "DRAFT" | "DISABLED";
