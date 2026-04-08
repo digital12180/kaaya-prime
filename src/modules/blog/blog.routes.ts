@@ -13,7 +13,7 @@ router.get("/get-all", blogController.getAllBlogs);
 router.get("/published", verifyToken, EditorAndadmin, blogController.getPublishedBlogs);
 router.get("/statistics", verifyToken, EditorAndadmin, blogController.getBlogStatistics);
 router.get("/search/title", blogController.searchBlogsByTitle);
-router.get("/:slug", verifyToken, EditorAndadmin, blogController.getBlogBySlug);
+router.get("/:slug", blogController.getBlogBySlug);
 router.get("/:id", blogController.getBlogById);
 router.put("/:id", verifyToken, EditorAndadmin, upload.single('image'), blogController.updateBlog);
 router.delete("/:id", verifyToken, EditorAndadmin, blogController.deleteBlog);

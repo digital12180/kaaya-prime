@@ -15,7 +15,7 @@ router.get("/search/title",verifyToken, landingPageController.searchLandingPages
 router.get("/status/:status",verifyToken, landingPageController.getLandingPagesByStatus);
 router.get("/form-type/:formType",verifyToken, landingPageController.getLandingPagesByFormType);
 router.get("/check-slug",verifyToken, landingPageController.checkSlugUniqueness);
-router.get("/:slug",verifyToken, landingPageController.getLandingPageBySlug);
+router.get("/:slug", landingPageController.getLandingPageBySlug);
 router.get("/admin/slug/:slug",verifyToken, landingPageController.getLandingPageBySlugAdmin);
 router.get("/:id",verifyToken, landingPageController.getLandingPageById);
 router.put("/:id",verifyToken,EditorAndadmin, landingPageController.updateLandingPage);
