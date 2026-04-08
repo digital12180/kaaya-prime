@@ -18,30 +18,30 @@ export class OpportunityController {
     }
 
     // Create opportunity
-   createOpportunity = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const files = req.files as Express.Multer.File[]; // ✅ proper casting
+    createOpportunity = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const files = req.files as Express.Multer.File[]; // ✅ proper casting
 
-        const opportunity = await this.opportunityService.createOpportunity(
-            req.body,
-            files
-        );
+            const opportunity = await this.opportunityService.createOpportunity(
+                req.body,
+                files
+            );
 
-        res.status(201).json({
-            success: true,
-            message: "Opportunity created successfully",
-            data: opportunity
-        });
-    } catch (error: any) {
-        const status = error.message?.includes("already exists") ? 409 : 400;
+            res.status(201).json({
+                success: true,
+                message: "Opportunity created successfully",
+                data: opportunity
+            });
+        } catch (error: any) {
+            const status = error.message?.includes("already exists") ? 409 : 400;
 
-        res.status(status).json({
-            success: false,
-            message: error.message || "Failed to create opportunity",
-            error: process.env.NODE_ENV === "development" ? error.stack : undefined
-        });
-    }
-};
+            res.status(status).json({
+                success: false,
+                message: error.message || "Failed to create opportunity",
+                error: process.env.NODE_ENV === "development" ? error.stack : undefined
+            });
+        }
+    };
 
     // Get all opportunities with pagination
     getAllOpportunities = async (req: Request, res: Response): Promise<void> => {
@@ -122,8 +122,8 @@ export class OpportunityController {
                     message: "Request body is required"
                 });
             }
-            const files=req.files as Express.Multer.File[];
-            const opportunity = await this.opportunityService.updateOpportunity(id as string, req.body,files);
+            const files = req.files as Express.Multer.File[];
+            const opportunity = await this.opportunityService.updateOpportunity(id as string, req.body, files);
             return res.status(200).json({
                 success: true,
                 message: "Opportunity updated successfully",
@@ -240,6 +240,23 @@ export class OpportunityController {
             res.status(400).json({
                 success: false,
                 message: error.message || "Failed to retrieve opportunities by title",
+                error: process.env.NODE_ENV === "development" ? error.stack : undefined
+            });
+        }
+    };
+    getOpportunityBySlug = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const { slug } = req.params;
+            const opportunity = await this.opportunityService.getOpportunityBySlug(slug as string);
+            res.status(200).json({
+                success: true,
+                message: "Opportunity page retrieved successfully",
+                data: opportunity
+            });
+        } catch (error: any) {
+            res.status(404).json({
+                success: false,
+                message: error.message || "Failed to retrieve opportunity",
                 error: process.env.NODE_ENV === "development" ? error.stack : undefined
             });
         }
