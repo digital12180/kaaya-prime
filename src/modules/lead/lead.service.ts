@@ -4,11 +4,16 @@ import { Lead } from "./lead.model.js";
 import type { CreateLeadDto, UpdateLeadDto, LeadResponseDto, PaginationDto } from "./lead.dto.js";
 import { ApiError } from "../../common/exceptions/apiError.js";
 import { emailService } from "../../common/services/email.service.js";
+import { User } from "../user/user.model.js";
 
 export class LeadService {
     // Create a new lead
-    async createLead(createLeadDto: CreateLeadDto): Promise<LeadResponseDto | Response | any> {
+    async createLead(createLeadDto: CreateLeadDto, id: string): Promise<LeadResponseDto | Response | any> {
         try {
+            const user = await User.findById(id);
+            if (!user) {
+                throw new Error("User not found");
+            }
             // Check if lead already exists with same email or phone
             const existingLead = await Lead.findOne({
                 $or: [
@@ -20,10 +25,11 @@ export class LeadService {
             if (existingLead) {
                 throw new Error("Lead with this email or phone already exists");
             }
-            
+
             const lead = new Lead(createLeadDto);
             await lead.save();
-            // await emailService.sendLeadCreatedEmail(createLeadDto.email,createLeadDto.email)
+            
+            await emailService.sendLeadCreatedEmail(user.email, user.username, createLeadDto.name);
             return lead;
         } catch (error: any) {
             if (error.code === 11000) {
@@ -167,7 +173,7 @@ export class LeadService {
             const result = await Lead.find({
                 name: { $regex: name, $options: 'i' }
             });
-            
+
             if (!result) {
                 throw new ApiError(404, "Lead not found");
             }

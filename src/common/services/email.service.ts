@@ -120,21 +120,23 @@ class EmailService {
   async sendLeadCreatedEmail(
     email: string,
     name: string,
-    leadName: string,
-    createdBy: string
+    leadName: string
   ) {
     return this.sendEmail(
       email,
-      "🎯 New Lead Created",
+      "✅ Lead Created Successfully",
       `
     <h2>Hello ${name},</h2>
     
-    <p>A new lead has been successfully created in your account.</p>
+    <p>Your lead has been created successfully 🎉</p>
     
     <p><b>Lead Name:</b> ${leadName}</p>
-    <p><b>Created By:</b> ${createdBy}</p>
     
-    <p>You can now review and manage this lead by logging into your dashboard.</p>
+    <p>You can now track and manage this lead from your dashboard.</p>
+    
+    <br/>
+    
+    <p>If you have any questions, feel free to contact our support team.</p>
     
     <br/>
     
