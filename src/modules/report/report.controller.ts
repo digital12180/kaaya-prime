@@ -7,6 +7,7 @@ import {
     validateUpdateStatus
 } from "./report.dto.js";
 
+
 export class ReportController {
     private reportService: ReportService;
 
@@ -178,38 +179,39 @@ export class ReportController {
     };
 
     // Update report
-    updateReport = async (req: Request, res: Response): Promise<void> => {
+    updateReport = async (req: Request, res: Response): Promise<any> => {
         try {
             const { id } = req.params;
 
-            // Validate update data
-            const validationErrors = validateUpdateReport(req.body);
-            if (validationErrors.length > 0) {
-                res.status(400).json({
-                    success: false,
-                    message: "Validation failed",
-                    errors: validationErrors
-                });
-                return;
-            }
+            const files = req.files as {
+                image?: Express.Multer.File[];
+                fileUrl?: Express.Multer.File[];
+            };
 
-            const report = await this.reportService.updateReport(id as string, req.body);
-            res.status(200).json({
+            const report = await this.reportService.updateReport(
+                id as string,
+                req.body,
+                files
+            );
+
+            return res.status(200).json({
                 success: true,
                 message: "Report updated successfully",
                 data: report
             });
+
         } catch (error: any) {
-            const status = error.message === "Invalid report ID format" ? 400 :
-                error.message.includes("already exists") ? 409 : 404;
+            const status =
+                error.message === "Invalid report ID format" ? 400 :
+                    error.message.includes("already exists") ? 409 :
+                        error.message === "Report not found" ? 404 : 500;
+
             res.status(status).json({
                 success: false,
-                message: error.message || "Failed to update report",
-                error: process.env.NODE_ENV === "development" ? error.stack : undefined
+                message: error.message || "Failed to update report"
             });
         }
     };
-
     // Update report status only
     updateReportStatus = async (req: Request, res: Response): Promise<void> => {
         try {

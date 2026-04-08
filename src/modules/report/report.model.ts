@@ -5,7 +5,7 @@ export interface IReport extends Document {
   slug: string;
   description: string;
   fileUrl: string;
-  image?: string;
+  image: string;
   status: "PUBLISHED" | "DRAFT" | "ARCHIVED";
   createdAt: Date;
   updatedAt: Date;

@@ -10,6 +10,7 @@ import type {
 } from "./report.dto.js";
 import { uploadToCloudinary } from "../../config/cloudinary.js";
 import { generateSlug } from "../area/area.dto.js";
+import cloudinary from "../../config/cloudinary.js";
 
 export class ReportService {
 
@@ -175,40 +176,129 @@ export class ReportService {
         };
     }
 
-    // Update report
-    async updateReport(id: string, updateDto: IUpdateReportDto): Promise<ReportResponseDto | any> {
+    async updateReport(
+        id: string,
+        updateDto: IUpdateReportDto,
+        files?: {
+            image?: Express.Multer.File[];
+            fileUrl?: Express.Multer.File[];
+        }
+    ): Promise<any> {
+
         if (!mongoose.Types.ObjectId.isValid(id)) {
             throw new Error("Invalid report ID format");
         }
 
-        const existingReport = await Report.findById(id);
-        if (!existingReport) {
-            throw new Error("Report not found");
-        }
-
-        // Check if title is being updated and if it already exists
-        if (updateDto.title && updateDto.title !== existingReport.title) {
-            const titleExists = await Report.findOne({
-                _id: { $ne: id },
-                title: { $regex: new RegExp(`^${updateDto.title}$`, 'i') }
-            });
-
-            if (titleExists) {
-                throw new Error("Another report with this title already exists");
-            }
-        }
-
-        const report = await Report.findByIdAndUpdate(
-            id,
-            { ...updateDto, updatedAt: new Date() },
-            { new: true, runValidators: true }
-        ).lean();
-
+        const report = await Report.findById(id);
         if (!report) {
             throw new Error("Report not found");
         }
 
-        return report;
+        // ✅ Title uniqueness
+        if (updateDto.title && updateDto.title !== report.title) {
+            const existing = await Report.findOne({
+                _id: { $ne: id },
+                title: { $regex: new RegExp(`^${updateDto.title}$`, "i") }
+            });
+
+            if (existing) {
+                throw new Error("Another report with this title already exists");
+            }
+        }
+
+        const updateData: any = {
+            ...updateDto,
+            updatedAt: new Date()
+        };
+
+        // =========================
+        // ✅ IMAGE UPDATE
+        // =========================
+        const imageFile = files?.image?.[0];
+
+        if (imageFile) {
+            if (!imageFile.mimetype.startsWith("image/")) {
+                throw new Error("Invalid image format");
+            }
+
+            // delete old
+            if (report.image) {
+                try {
+                     if (report.image && typeof report.image === "string") {
+                        try {
+                            const publicId = report.image
+                                .split("/")
+                                .pop()!
+                                .split(".")[0];
+
+                            await cloudinary.uploader.destroy(publicId as string, {
+                                resource_type: "image"
+                            });
+                        } catch (err) {
+                            console.log("Old PDF delete failed:", err);
+                        }
+                    }
+                } catch (err) {
+                    console.log("Old image delete failed:", err);
+                }
+            }
+
+            // upload new
+            const imageUrl = await uploadToCloudinary(imageFile.buffer, "image");
+            updateData.image = imageUrl;
+        }
+
+        // =========================
+        // ✅ PDF UPDATE
+        // =========================
+        const pdfFile = files?.fileUrl?.[0];
+
+        if (pdfFile) {
+            if (pdfFile.mimetype !== "application/pdf") {
+                throw new Error("Invalid PDF format");
+            }
+
+            // delete old
+            if (report.fileUrl) {
+                try {
+                    if (report.fileUrl && typeof report.fileUrl === "string") {
+                        try {
+                            const publicId = report.fileUrl
+                                .split("/")
+                                .pop()!
+                                .split(".")[0];
+
+                            await cloudinary.uploader.destroy(publicId as string, {
+                                resource_type: "raw"
+                            });
+                        } catch (err) {
+                            console.log("Old PDF delete failed:", err);
+                        }
+                    }
+                } catch (err) {
+                    console.log("Old PDF delete failed:", err);
+                }
+            }
+
+            // upload new
+            const pdfUrl = await uploadToCloudinary(pdfFile.buffer, "auto");
+            updateData.fileUrl = pdfUrl;
+        }
+
+        // =========================
+        // ✅ SLUG UPDATE
+        // =========================
+        if (updateDto.title) {
+            updateData.slug = generateSlug(updateDto.title);
+        }
+
+        const updated = await Report.findByIdAndUpdate(
+            id,
+            updateData,
+            { new: true, runValidators: true }
+        ).lean();
+
+        return updated;
     }
 
     // Update report status only

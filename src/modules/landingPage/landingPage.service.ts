@@ -1,27 +1,29 @@
 // services/landingPage.service.ts
 import mongoose from "mongoose";
 import { LandingPage } from "./landingPage.model.js";
-import type{
+import type {
     ICreateLandingPageDto,
     IUpdateLandingPageDto,
     IUpdateStatusDto,
     LandingPageResponseDto,
     IPaginationDto,
 } from "./landingPage.dto.js";
-import {generateSlug} from "./landingPage.dto.js"
+import { generateSlug } from "./landingPage.dto.js"
 
 export class LandingPageService {
 
     // Create a new landing page
-    async createLandingPage(createDto: ICreateLandingPageDto): Promise<LandingPageResponseDto|any> {
+    async createLandingPage(createDto: ICreateLandingPageDto): Promise<LandingPageResponseDto | any> {
         try {
 
             // Check if slug already exists
-            const existingPage = await LandingPage.findOne({ slug:createDto.slug });
+            const existingPage = await LandingPage.findOne({ slug: createDto.slug });
             if (existingPage) {
                 throw new Error(`Landing page with slug '${createDto.slug}' already exists. Please use a different title.`);
             }
-
+            if (!createDto.opportunity) {
+                throw new Error("Opportunity Required");
+            }
             // Check if title already exists (case-insensitive)
             const existingTitle = await LandingPage.findOne({
                 title: { $regex: new RegExp(`^${createDto.title}$`, 'i') }
@@ -105,7 +107,7 @@ export class LandingPageService {
     }
 
     // Get landing page by ID
-    async getLandingPageById(id: string): Promise<LandingPageResponseDto|any> {
+    async getLandingPageById(id: string): Promise<LandingPageResponseDto | any> {
         if (!mongoose.Types.ObjectId.isValid(id)) {
             throw new Error("Invalid landing page ID format");
         }
@@ -119,7 +121,7 @@ export class LandingPageService {
     }
 
     // Get landing page by slug (for public viewing - only published)
-    async getLandingPageBySlug(slug: string): Promise<LandingPageResponseDto|any> {
+    async getLandingPageBySlug(slug: string): Promise<LandingPageResponseDto | any> {
         if (!slug || typeof slug !== 'string') {
             throw new Error("Invalid slug format");
         }
@@ -133,7 +135,7 @@ export class LandingPageService {
     }
 
     // Get landing page by slug for admin (all statuses)
-    async getLandingPageBySlugAdmin(slug: string): Promise<LandingPageResponseDto|any> {
+    async getLandingPageBySlugAdmin(slug: string): Promise<LandingPageResponseDto | any> {
         if (!slug || typeof slug !== 'string') {
             throw new Error("Invalid slug format");
         }
@@ -148,7 +150,7 @@ export class LandingPageService {
 
     // Search landing pages by title
     async searchLandingPagesByTitle(searchTerm: string, paginationDto: IPaginationDto): Promise<{
-        landingPages:any;
+        landingPages: any;
         total: number;
         page: number;
         limit: number;
@@ -196,7 +198,7 @@ export class LandingPageService {
     }
 
     // Update landing page
-    async updateLandingPage(id: string, updateDto: IUpdateLandingPageDto): Promise<LandingPageResponseDto|any> {
+    async updateLandingPage(id: string, updateDto: IUpdateLandingPageDto): Promise<LandingPageResponseDto | any> {
         if (!mongoose.Types.ObjectId.isValid(id)) {
             throw new Error("Invalid landing page ID format");
         }
@@ -208,30 +210,30 @@ export class LandingPageService {
 
         // Check if title is being updated and generate new slug if needed
         let updateData: any = { ...updateDto };
-        
+
         if (updateDto.title && updateDto.title !== existingPage.title) {
             const newSlug = updateDto.title;
-            
+
             // Check if new slug already exists for another page
             const slugExists = await LandingPage.findOne({
                 _id: { $ne: id },
                 slug: newSlug
             });
-            
+
             if (slugExists) {
                 throw new Error(`Landing page with slug '${newSlug}' already exists. Please use a different title.`);
             }
-            
+
             // Check if title already exists for another page
             const titleExists = await LandingPage.findOne({
                 _id: { $ne: id },
                 title: { $regex: new RegExp(`^${updateDto.title}$`, 'i') }
             });
-            
+
             if (titleExists) {
                 throw new Error("Another landing page with this title already exists");
             }
-            
+
             updateData.slug = newSlug;
         }
 
@@ -249,7 +251,7 @@ export class LandingPageService {
     }
 
     // Update landing page status only
-    async updateLandingPageStatus(id: string, statusDto: IUpdateStatusDto): Promise<LandingPageResponseDto|any> {
+    async updateLandingPageStatus(id: string, statusDto: IUpdateStatusDto): Promise<LandingPageResponseDto | any> {
         if (!mongoose.Types.ObjectId.isValid(id)) {
             throw new Error("Invalid landing page ID format");
         }
@@ -285,9 +287,9 @@ export class LandingPageService {
     }
 
     // Get landing pages by status
-    async getLandingPagesByStatus(status: string): Promise<LandingPageResponseDto[]|any> {
+    async getLandingPagesByStatus(status: string): Promise<LandingPageResponseDto[] | any> {
         const validStatuses = ["PUBLISHED", "DRAFT", "DISABLED"];
-        
+
         if (!validStatuses.includes(status)) {
             throw new Error(`Invalid status. Must be one of: ${validStatuses.join(", ")}`);
         }
@@ -300,9 +302,9 @@ export class LandingPageService {
     }
 
     // Get landing pages by form type
-    async getLandingPagesByFormType(formType: string): Promise<LandingPageResponseDto[]|any> {
+    async getLandingPagesByFormType(formType: string): Promise<LandingPageResponseDto[] | any> {
         const validFormTypes = ["CONTACT", "CONSULTATION", "DOWNLOAD", "NONE"];
-        
+
         if (!validFormTypes.includes(formType)) {
             throw new Error(`Invalid form type. Must be one of: ${validFormTypes.join(", ")}`);
         }
@@ -316,7 +318,7 @@ export class LandingPageService {
 
     // Get published landing pages only (for public viewing)
     async getPublishedLandingPages(paginationDto: IPaginationDto): Promise<{
-        landingPages: LandingPageResponseDto[]|any;
+        landingPages: LandingPageResponseDto[] | any;
         total: number;
         page: number;
         limit: number;
@@ -360,7 +362,7 @@ export class LandingPageService {
     // Bulk delete landing pages
     async bulkDeleteLandingPages(ids: string[]): Promise<{ deletedCount: number; deletedIds: string[] }> {
         const validIds = ids.filter(id => mongoose.Types.ObjectId.isValid(id));
-        
+
         if (validIds.length === 0) {
             throw new Error("No valid landing page IDs provided");
         }

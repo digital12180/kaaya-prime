@@ -4,6 +4,7 @@ export interface ILandingPage extends Document {
   title: string;
   slug: string;
   content: string;
+  opportunity: mongoose.Types.ObjectId;
   formType: "CONTACT" | "CONSULTATION" | "DOWNLOAD" | "NONE";
   status: "PUBLISHED" | "DRAFT" | "DISABLED";
   createdAt: Date;
@@ -40,10 +41,15 @@ const LandingPageSchema: Schema<ILandingPage> = new Schema(
       required: true,
       index: true,
     },
-
+    opportunity:
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Opportunity",
+      required: true
+    },
     status: {
       type: String,
-      enum: ["PUBLISHED" ,"DRAFT" , "DISABLED"],
+      enum: ["PUBLISHED", "DRAFT", "DISABLED"],
       default: "PUBLISHED",
       index: true,
     },
