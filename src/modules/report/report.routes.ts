@@ -14,7 +14,7 @@ router.get("/published", verifyToken, reportController.getPublishedReports);
 router.get("/statistics", verifyToken, reportController.getReportStatistics);
 router.get("/search/title", verifyToken, reportController.searchReportsByTitle);
 router.get("/status/:status", verifyToken, reportController.getReportsByStatus);
-// router.get("/:slug", reportController.getReportsBySlug);
+router.get("/:slug", reportController.getReportsBySlug);
 router.get("/:id", verifyToken, reportController.getReportById);
 router.put("/:id", verifyToken, ManagerAndadmin, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'fileUrl', maxCount: 1 }]), reportController.updateReport);
 router.patch("/:id/status", verifyToken, ManagerAndadmin, reportController.updateReportStatus);
