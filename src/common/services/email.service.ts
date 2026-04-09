@@ -119,14 +119,13 @@ class EmailService {
 
   async sendLeadCreatedEmail(
     email: string,
-    name: string,
     leadName: string
   ) {
     return this.sendEmail(
       email,
       "✅ Lead Created Successfully",
       `
-    <h2>Hello ${name},</h2>
+    <h2>Hello,</h2>
     
     <p>Your lead has been created successfully 🎉</p>
     
