@@ -12,8 +12,8 @@ router.post("/create",verifyToken,ManagerAndadmin,upload.array('images',5), oppo
 router.get("/get-all",verifyToken, opportunityController.getAllOpportunities);
 router.get("/statistics",verifyToken,ManagerAndadmin, opportunityController.getOpportunityStatistics);
 router.get("/status/:status",verifyToken, opportunityController.getOpportunitiesByStatus);
-router.get("/:id",verifyToken, opportunityController.getOpportunityById);
 router.get("/:slug", opportunityController.getOpportunityBySlug);
+router.get("/:id",verifyToken, opportunityController.getOpportunityById);
 router.put("/:id",verifyToken,ManagerAndadmin,upload.array('images',5), opportunityController.updateOpportunity);
 router.delete("/:id",verifyToken,ManagerAndadmin, opportunityController.deleteOpportunity);
 router.post("/bulk-delete",verifyToken,ManagerAndadmin, opportunityController.bulkDeleteOpportunities);
