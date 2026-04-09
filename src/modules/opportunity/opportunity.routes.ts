@@ -9,7 +9,7 @@ const opportunityController = new OpportunityController();
 
 // Opportunity routes
 router.post("/create",verifyToken,ManagerAndadmin,upload.array('images',5), opportunityController.createOpportunity);
-router.get("/get-all",verifyToken, opportunityController.getAllOpportunities);
+router.get("/get-all", opportunityController.getAllOpportunities);
 router.get("/statistics",verifyToken,ManagerAndadmin, opportunityController.getOpportunityStatistics);
 router.get("/status/:status",verifyToken, opportunityController.getOpportunitiesByStatus);
 router.get("/:slug", opportunityController.getOpportunityBySlug);
