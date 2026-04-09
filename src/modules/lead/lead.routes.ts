@@ -7,7 +7,7 @@ const router = Router();
 const leadController = new LeadController();
 
 // Lead routes
-router.post("/create", verifyToken, leadController.createLead);
+router.post("/create", leadController.createLead);
 router.get("/get-all", verifyToken, leadController.getAllLeads); //BY ADMIN AND MANAGER
 router.get("/statistics", verifyToken, leadController.getLeadStatistics);
 router.get("/:id", verifyToken, leadController.getLeadById);
