@@ -22,9 +22,9 @@ export class LeadService {
                 ]
             });
 
-            if (existingLead) {
-                throw new Error("Lead with this email or phone already exists");
-            }
+            // if (existingLead) {
+            //     throw new Error("Lead with this email or phone already exists");
+            // }
 
             const lead = new Lead(createLeadDto);
             await lead.save();
