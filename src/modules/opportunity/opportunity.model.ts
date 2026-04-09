@@ -6,6 +6,7 @@ export interface IOpportunity extends Document {
   description: string;
   location: string;
   images: string[];
+  area: mongoose.Types.ObjectId;
   landingPage: mongoose.Types.ObjectId[],
   status: "ACTIVE" | "UPCOMING" | "SOLD OUT" | "UNDER REVIEW";
   createdAt: Date;
@@ -38,8 +39,12 @@ const OpportunitySchema: Schema<IOpportunity> = new Schema(
     landingPage: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'LandingPage',
-      default:[]
+      default: []
     }],
+    area: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Area',
+    },
     images:
       [{
         type: String,

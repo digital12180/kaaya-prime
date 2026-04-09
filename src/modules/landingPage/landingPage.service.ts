@@ -135,7 +135,11 @@ export class LandingPageService {
             throw new Error("Invalid slug format");
         }
 
-        const landingPage = await LandingPage.findOne({ slug, status: "PUBLISHED" }).populate('opportunity').lean();
+        const landingPage = await LandingPage.findOne({ slug, status: "PUBLISHED" }).populate({
+            path: 'opportunity', populate: {
+                path: 'area'
+            }
+        }).lean();
         if (!landingPage) {
             throw new Error("Landing page not found or not published");
         }
