@@ -144,7 +144,12 @@ export class AreaService {
     }
 
     // Update area
-    async updateArea(id: string, updateDto: IUpdateAreaDto, file?: Express.Multer.File): Promise<any> {
+    async updateArea(
+        id: string,
+        updateDto: IUpdateAreaDto,
+        file?: Express.Multer.File
+    ): Promise<any> {
+
         if (!mongoose.Types.ObjectId.isValid(id)) {
             throw new Error("Invalid area ID format");
         }
@@ -154,26 +159,29 @@ export class AreaService {
             throw new Error("Area not found");
         }
 
-        // Check if name is being updated and generate new slug if needed
-        let updateData: any = { ...updateDto };
+        // ✅ REMOVE opportunities from updateDto
+        const { opportunities, ...restDto } = updateDto;
 
-        if (updateDto.name && updateDto.name !== existingArea.name) {
-            const newSlug = generateSlug(updateDto.name);
+        let updateData: any = { ...restDto };
 
-            // Check if new slug already exists for another area
+        // -------------------------------
+        // Slug + Name logic
+        // -------------------------------
+        if (restDto.name && restDto.name !== existingArea.name) {
+            const newSlug = generateSlug(restDto.name);
+
             const slugExists = await Area.findOne({
                 _id: { $ne: id },
-                slug: newSlug
+                slug: newSlug,
             });
 
             if (slugExists) {
-                throw new Error(`Area with slug '${newSlug}' already exists. Please use a different name.`);
+                throw new Error(`Area with slug '${newSlug}' already exists`);
             }
 
-            // Check if name already exists for another area
             const nameExists = await Area.findOne({
                 _id: { $ne: id },
-                name: { $regex: new RegExp(`^${updateDto.name}$`, 'i') }
+                name: { $regex: new RegExp(`^${restDto.name}$`, "i") },
             });
 
             if (nameExists) {
@@ -183,19 +191,24 @@ export class AreaService {
             updateData.slug = newSlug;
         }
 
-        // Update meta fields if not provided
-        if (updateDto.name && !updateDto.metaTitle) {
-            updateData.metaTitle = updateDto.name;
+        // -------------------------------
+        // Meta fields
+        // -------------------------------
+        if (restDto.name && !restDto.metaTitle) {
+            updateData.metaTitle = restDto.name;
         }
 
-        if (updateDto.description && !updateDto.metaDescription) {
-            updateData.metaDescription = updateDto.description.substring(0, 160);
+        if (restDto.description && !restDto.metaDescription) {
+            updateData.metaDescription = restDto.description.substring(0, 160);
         }
+
+        // -------------------------------
+        // Image upload
+        // -------------------------------
         if (file) {
             try {
                 const uploadedImageUrl = await uploadToCloudinary(file.buffer);
 
-                // 2. Delete old image (if exists)
                 if (existingArea?.image) {
                     const parts = existingArea.image.split("/");
                     const fileName = parts[parts.length - 1];
@@ -206,33 +219,63 @@ export class AreaService {
                     }
                 }
 
-                // 3. Update data (IMPORTANT: updateData use karo, updateDto nahi)
                 updateData.image = uploadedImageUrl;
-
             } catch (error) {
                 throw new Error("Image update failed");
             }
         }
+
+        // -------------------------------
+        // ✅ UPDATE AREA (without opportunities)
+        // -------------------------------
         const area = await Area.findByIdAndUpdate(
             id,
             { ...updateData, updatedAt: new Date() },
             { new: true, runValidators: true }
-        ).lean();
+        );
 
         if (!area) {
-            throw new Error("Area not found");
+            throw new Error("Area not found after update");
         }
-        if (updateDto.opportunities) {
-            const opportuntiy = await Opportunity.findById(updateDto.opportunities);
-            if (!opportuntiy) {
-                throw new Error("Opportunity not found");
+
+        // -------------------------------
+        // ✅ HANDLE RELATION SEPARATELY
+        // -------------------------------
+        if (opportunities) {
+            const opportunityIds = Array.isArray(opportunities)
+                ? opportunities
+                : [opportunities];
+
+            for (const oppId of opportunityIds) {
+                if (!mongoose.Types.ObjectId.isValid(oppId)) {
+                    throw new Error(`Invalid opportunity ID: ${oppId}`);
+                }
+
+                const opportunity = await Opportunity.findById(oppId);
+                if (!opportunity) {
+                    throw new Error(`Opportunity not found: ${oppId}`);
+                }
+
+                // Set area in opportunity
+                await Opportunity.findByIdAndUpdate(oppId, {
+                    area: area._id,
+                });
+
+                // Push into area (no overwrite now ✅)
+                await Area.findByIdAndUpdate(area._id, {
+                    $addToSet: { opportunities: oppId },
+                });
             }
-            await Opportunity.findByIdAndUpdate(
-                opportuntiy._id,
-                { area: area._id },
-                { new: true })
         }
-        return area;
+
+        // -------------------------------
+        // FINAL FETCH
+        // -------------------------------
+        const updatedArea = await Area.findById(area._id)
+            .populate("opportunities")
+            .lean();
+
+        return updatedArea;
     }
 
     // Delete area

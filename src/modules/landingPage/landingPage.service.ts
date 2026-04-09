@@ -10,6 +10,7 @@ import type {
     IPaginationDto,
 } from "./landingPage.dto.js";
 import { generateSlug } from "./landingPage.dto.js"
+import { populate } from "dotenv";
 
 export class LandingPageService {
 
@@ -137,7 +138,10 @@ export class LandingPageService {
 
         const landingPage = await LandingPage.findOne({ slug, status: "PUBLISHED" }).populate({
             path: 'opportunity', populate: {
-                path: 'area'
+                path: 'area',
+                populate:{
+                    path:'opportunities'
+                }
             }
         }).lean();
         if (!landingPage) {
