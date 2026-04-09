@@ -32,7 +32,7 @@ export class LeadService {
             await emailService.sendLeadCreatedEmail(createLeadDto.email.toLowerCase(),createLeadDto.name);
             return lead;
         } catch (error: any) {
-            console.log(error);
+            console.log(error.message);
             
             if (error.code === 11000) {
                 throw new Error("Duplicate lead: Email and phone combination already exists");
