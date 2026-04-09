@@ -8,7 +8,7 @@ const landingPageController = new LandingPageController();
 
 // Landing page routes
 router.post("/create",verifyToken,EditorAndadmin, landingPageController.createLandingPage);
-router.get("/get-all",verifyToken, landingPageController.getAllLandingPages);
+router.get("/get-all", landingPageController.getAllLandingPages);
 router.get("/published",verifyToken ,landingPageController.getPublishedLandingPages);
 router.get("/statistics",verifyToken, landingPageController.getLandingPageStatistics);
 router.get("/search/title",verifyToken, landingPageController.searchLandingPagesByTitle);
