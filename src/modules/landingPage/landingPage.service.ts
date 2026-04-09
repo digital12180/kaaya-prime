@@ -97,7 +97,7 @@ export class LandingPageService {
         }
 
         const [landingPages, total] = await Promise.all([
-            LandingPage.find(query)
+            LandingPage.find(query).populate('opportunity')
                 .sort(sort)
                 .skip(skip)
                 .limit(limit)
