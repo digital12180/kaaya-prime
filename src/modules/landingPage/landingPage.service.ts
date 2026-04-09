@@ -218,7 +218,11 @@ export class LandingPageService {
     }
 
     // Update landing page
-    async updateLandingPage(id: string, updateDto: IUpdateLandingPageDto): Promise<LandingPageResponseDto | any> {
+    async updateLandingPage(
+        id: string,
+        updateDto: IUpdateLandingPageDto
+    ): Promise<LandingPageResponseDto | any> {
+
         if (!mongoose.Types.ObjectId.isValid(id)) {
             throw new Error("Invalid landing page ID format");
         }
@@ -228,26 +232,31 @@ export class LandingPageService {
             throw new Error("Landing page not found");
         }
 
-        // Check if title is being updated and generate new slug if needed
-        let updateData: any = { ...updateDto };
+        // ✅ Separate opportunity
+        let { opportunity, ...rest } = updateDto;
 
+        type UpdateLandingData = Partial<IUpdateLandingPageDto>;
+
+        let updateData: UpdateLandingData = { ...rest };
+
+        // -------------------------------
+        // Slug + Title logic
+        // -------------------------------
         if (updateDto.title && updateDto.title !== existingPage.title) {
             const newSlug = updateDto.title;
 
-            // Check if new slug already exists for another page
             const slugExists = await LandingPage.findOne({
                 _id: { $ne: id },
-                slug: newSlug
+                slug: newSlug,
             });
 
             if (slugExists) {
-                throw new Error(`Landing page with slug '${newSlug}' already exists. Please use a different title.`);
+                throw new Error(`Landing page with slug '${newSlug}' already exists`);
             }
 
-            // Check if title already exists for another page
             const titleExists = await LandingPage.findOne({
                 _id: { $ne: id },
-                title: { $regex: new RegExp(`^${updateDto.title}$`, 'i') }
+                title: { $regex: new RegExp(`^${updateDto.title}$`, "i") },
             });
 
             if (titleExists) {
@@ -256,22 +265,37 @@ export class LandingPageService {
 
             updateData.slug = newSlug;
         }
-        if (updateDto.opportunity && String(updateDto.opportunity) !== String(existingPage.opportunity)) {
-            // 1. Verify the NEW opportunity exists
-            const newOpportunity = await Opportunity.findById(updateDto.opportunity);
+
+        // -------------------------------
+        // ✅ Handle Opportunity Relation
+        // -------------------------------
+        if (opportunity && String(opportunity) !== String(existingPage.opportunity)) {
+
+            // 1. Check new opportunity exists
+            const newOpportunity = await Opportunity.findById(opportunity);
             if (!newOpportunity) {
                 throw new Error("Opportunity Not Found");
             }
 
+            // 2. Remove from OLD opportunity
             if (existingPage.opportunity) {
                 await Opportunity.findByIdAndUpdate(existingPage.opportunity, {
-                    $pull: { landingPage: existingPage._id }
+                    $pull: { landingPage: existingPage._id },
                 });
             }
-            newOpportunity.landingPage.push(existingPage._id);
-            await newOpportunity.save();
+
+            // 3. Add to NEW opportunity (NO overwrite, NO duplicate)
+            await Opportunity.findByIdAndUpdate(opportunity, {
+                $addToSet: { landingPage: existingPage._id },
+            });
+
+            // 4. Update landingPage side reference
+            updateData.opportunity = new mongoose.Types.ObjectId(opportunity);
         }
 
+        // -------------------------------
+        // Update Landing Page
+        // -------------------------------
         const landingPage = await LandingPage.findByIdAndUpdate(
             id,
             { ...updateData, updatedAt: new Date() },

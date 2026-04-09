@@ -300,7 +300,7 @@ export class OpportunityService {
             throw new Error("Invalid slug format");
         }
 
-        const opportunity = await Opportunity.findOne({ slug: slug }).populate('landingPage').lean();
+        const opportunity = await Opportunity.findOne({ slug: slug }).populate('landingPage').populate('area').lean();
         if (!opportunity) {
             throw new Error("opportunity not found or not published");
         }
