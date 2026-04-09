@@ -139,8 +139,11 @@ export class LandingPageService {
         const landingPage = await LandingPage.findOne({ slug, status: "PUBLISHED" }).populate({
             path: 'opportunity', populate: {
                 path: 'area',
-                populate:{
-                    path:'opportunities'
+                populate: {
+                    path: 'opportunities',
+                    populate: {
+                        path: "landingPage"
+                    }
                 }
             }
         }).lean();
