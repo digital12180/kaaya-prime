@@ -403,4 +403,17 @@ export class ReportService {
         paginationDto.status = "PUBLISHED";
         return this.getAllReports(paginationDto);
     }
+
+    async getReportsBySlug(slug: string): Promise<any> {
+            if (!slug || typeof slug !== 'string') {
+                throw new Error("Invalid slug format");
+            }
+    
+            const report = await Report.findOne({ slug }).lean();
+            if (!report) {
+                throw new Error("Report not found");
+            }
+    
+            return report;
+        }
 }

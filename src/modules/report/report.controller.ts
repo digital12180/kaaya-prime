@@ -361,4 +361,22 @@ export class ReportController {
             });
         }
     };
+    getReportsBySlug = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const { slug } = req.params;
+            const reports = await this.reportService.getReportsBySlug(slug as string);
+            res.status(200).json({
+                success: true,
+                message: "Reports retrieved successfully",
+                data: reports
+            });
+        } catch (error: any) {
+            res.status(404).json({
+                success: false,
+                message: error.message || "Failed to retrieve reports",
+                error: process.env.NODE_ENV === "development" ? error.stack : undefined
+            });
+        }
+    };
+
 }
