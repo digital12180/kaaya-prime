@@ -125,7 +125,7 @@ export class AreaService {
             throw new Error("Invalid slug format");
         }
 
-        const area = await Area.findOne({ slug }).lean();
+        const area = await Area.findOne({ slug }).populate('opportunities').lean();
         if (!area) {
             throw new Error("Area not found");
         }
