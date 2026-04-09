@@ -52,13 +52,13 @@ const LeadSchema: Schema<ILead> = new Schema(
 );
 
 // 🔥 COMPOUND INDEX (VERY IMPORTANT FOR PERFORMANCE)
-LeadSchema.index({ email: 1, phone: 1 }, { unique: true });
+// LeadSchema.index({ email: 1, phone: 1 }, { unique: true });
 
 // 🔥 TEXT INDEX (for search functionality)
-LeadSchema.index({
-    name: "text",
-    email: "text",
-    phone: "text",
-});
+// LeadSchema.index({
+//     name: "text",
+//     email: "text",
+//     phone: "text",
+// });
 
 export const Lead = mongoose.model<ILead>("Lead", LeadSchema);

@@ -15,12 +15,12 @@ export class LeadService {
             //     throw new Error("User not found");
             // }
             // Check if lead already exists with same email or phone
-            const existingLead = await Lead.findOne({
-                $or: [
-                    { email: createLeadDto.email.toLowerCase() },
-                    { phone: createLeadDto.phone }
-                ]
-            });
+            // const existingLead = await Lead.findOne({
+            //     $or: [
+            //         { email: createLeadDto.email.toLowerCase() },
+            //         { phone: createLeadDto.phone }
+            //     ]
+            // });
 
             // if (existingLead) {
             //     throw new Error("Lead with this email or phone already exists");
@@ -32,6 +32,8 @@ export class LeadService {
             await emailService.sendLeadCreatedEmail(createLeadDto.email.toLowerCase(),createLeadDto.name);
             return lead;
         } catch (error: any) {
+            console.log(error);
+            
             if (error.code === 11000) {
                 throw new Error("Duplicate lead: Email and phone combination already exists");
             }
