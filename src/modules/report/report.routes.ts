@@ -9,7 +9,7 @@ const reportController = new ReportController();
 
 // Report routes
 router.post("/create", verifyToken, ManagerAndadmin, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'fileUrl', maxCount: 1 }]), reportController.createReport);
-router.get("/get-all", verifyToken, reportController.getAllReports);
+router.get("/get-all", reportController.getAllReports);
 router.get("/published", verifyToken, reportController.getPublishedReports);
 router.get("/statistics", verifyToken, reportController.getReportStatistics);
 router.get("/:slug", reportController.getReportsBySlug)
