@@ -12,6 +12,7 @@ import { generateSlug } from "./area.dto.js"
 import { ApiError } from "../../common/exceptions/apiError.js";
 import { uploadToCloudinary } from "../../config/cloudinary.js";
 import cloudinary from "../../config/cloudinary.js";
+import { Opportunity } from "../opportunity/opportunity.model.js";
 
 export class AreaService {
 
@@ -39,7 +40,12 @@ export class AreaService {
             if (!imageUrl) {
                 throw new Error("Image Upload on cloudinary error");
             }
+
             createDto.image = imageUrl;
+            const opportuntiy = await Opportunity.findById(createDto.opportunities);
+            if (!opportuntiy) {
+                throw new Error("Opportunity not found");
+            }
             // Set default meta title and description if not provided
             const areaData = {
                 ...createDto,
@@ -50,6 +56,10 @@ export class AreaService {
 
             const area = new Area(areaData);
             await area.save();
+            await Opportunity.findByIdAndUpdate(
+                opportuntiy._id,
+                { area: area._id },
+                { new: true })
             return area;
         } catch (error: any) {
             if (error.code === 11000) {
@@ -190,7 +200,7 @@ export class AreaService {
                     const parts = existingArea.image.split("/");
                     const fileName = parts[parts.length - 1];
                     const publicId = fileName?.split(".")[0];
-                    
+
                     if (publicId) {
                         await cloudinary.uploader.destroy(`kaaya/${publicId}`);
                     }
@@ -212,7 +222,16 @@ export class AreaService {
         if (!area) {
             throw new Error("Area not found");
         }
-
+        if (updateDto.opportunities) {
+            const opportuntiy = await Opportunity.findById(updateDto.opportunities);
+            if (!opportuntiy) {
+                throw new Error("Opportunity not found");
+            }
+            await Opportunity.findByIdAndUpdate(
+                opportuntiy._id,
+                { area: area._id },
+                { new: true })
+        }
         return area;
     }
 

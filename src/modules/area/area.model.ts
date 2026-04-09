@@ -51,7 +51,7 @@ const AreaSchema: Schema<IArea> = new Schema(
       trim: true,
       default: "",
     },
-
+  
     metaDescription: {
       type: String,
       trim: true,
