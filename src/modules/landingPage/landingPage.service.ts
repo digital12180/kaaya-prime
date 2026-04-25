@@ -418,24 +418,6 @@ export class LandingPageService {
         };
     }
 
-    // Bulk delete landing pages
-    async bulkDeleteLandingPages(ids: string[]): Promise<{ deletedCount: number; deletedIds: string[] }> {
-        const validIds = ids.filter(id => mongoose.Types.ObjectId.isValid(id));
-
-        if (validIds.length === 0) {
-            throw new Error("No valid landing page IDs provided");
-        }
-
-        const result = await LandingPage.deleteMany({
-            _id: { $in: validIds }
-        });
-
-        return {
-            deletedCount: result.deletedCount || 0,
-            deletedIds: validIds
-        };
-    }
-
     // Check if slug is unique (for real-time validation)
     async isSlugUnique(slug: string, excludeId?: string): Promise<boolean> {
         const query: any = { slug };

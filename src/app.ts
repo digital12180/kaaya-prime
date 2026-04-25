@@ -1,4 +1,4 @@
-import {fileURLToPath} from "url";
+import { fileURLToPath } from "url";
 import { dirname } from "path";
 
 import express from "express";
@@ -11,11 +11,11 @@ import cookieParser from "cookie-parser";
 //Routes 
 import BaseRoutes from "./routes/index.js";
 
-const app=express();
+const app = express();
 
 app.use(helmet({
-    contentSecurityPolicy:false,
-    crossOriginEmbedderPolicy:false,
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
 }))
 const allowedOrigins = [
   'https://kaaya-prime-realty-crm.vercel.app',
@@ -48,10 +48,10 @@ app.use(compression());
 app.use(cookieParser());
 
 //Logging 
-if(process.env.NODE_ENV!=='production'){
-    app.use(morgan('dev'));
-}else{
-    app.use(morgan('combined'));
+if (process.env.NODE_ENV !== 'production') {
+  app.use(morgan('dev'));
+} else {
+  app.use(morgan('combined'));
 }
 
 app.use((req, res, next) => {

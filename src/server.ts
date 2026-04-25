@@ -1,11 +1,11 @@
-import  {errorHandler}  from "./common/middleware/error.middleware.js";
+import { errorHandler } from "./common/middleware/error.middleware.js";
 import http from "http";
 import { connectDB } from "./config/db.js";
 
 
 import dotenv from "dotenv";
 
-dotenv.config({override:true});
+dotenv.config({ override: true });
 
 import app from "./app.js";
 

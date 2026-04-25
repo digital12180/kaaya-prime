@@ -21,6 +21,5 @@ router.get("/:id",verifyToken, landingPageController.getLandingPageById);
 router.put("/:id",verifyToken,EditorAndadmin, landingPageController.updateLandingPage);
 router.patch("/:id/status",verifyToken,EditorAndadmin, landingPageController.updateLandingPageStatus);
 router.delete("/:id",verifyToken,EditorAndadmin, landingPageController.deleteLandingPage);
-router.post("/bulk-delete",verifyToken,EditorAndadmin, landingPageController.bulkDeleteLandingPages);
 
 export default router;

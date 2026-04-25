@@ -19,6 +19,5 @@ router.get("/:id", verifyToken, reportController.getReportById);
 router.put("/:id", verifyToken, ManagerAndadmin, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'fileUrl', maxCount: 1 }]), reportController.updateReport);
 router.patch("/:id/status", verifyToken, ManagerAndadmin, reportController.updateReportStatus);
 router.delete("/:id", verifyToken, ManagerAndadmin, reportController.deleteReport);
-router.post("/bulk-delete", verifyToken, ManagerAndadmin, reportController.bulkDeleteReports);
 
 export default router;

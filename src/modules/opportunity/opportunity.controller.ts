@@ -197,35 +197,7 @@ export class OpportunityController {
             });
         }
     };
-
-    // Bulk delete opportunities
-    bulkDeleteOpportunities = async (req: Request, res: Response): Promise<void> => {
-        try {
-            const { ids } = req.body;
-
-            if (!ids || !Array.isArray(ids) || ids.length === 0) {
-                res.status(400).json({
-                    success: false,
-                    message: "Please provide an array of opportunity IDs to delete"
-                });
-                return;
-            }
-
-            const result = await this.opportunityService.bulkDeleteOpportunities(ids);
-            res.status(200).json({
-                success: true,
-                message: `${result.deletedCount} opportunities deleted successfully`,
-                data: result
-            });
-        } catch (error: any) {
-            res.status(400).json({
-                success: false,
-                message: error.message || "Failed to delete opportunities",
-                error: process.env.NODE_ENV === "development" ? error.stack : undefined
-            });
-        }
-    };
-
+    
     searchOpportunity = async (req: Request, res: Response): Promise<void> => {
         try {
             const { title } = req.query;

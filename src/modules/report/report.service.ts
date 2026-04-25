@@ -374,23 +374,6 @@ export class ReportService {
         };
     }
 
-    // Bulk delete reports
-    async bulkDeleteReports(ids: string[]): Promise<{ deletedCount: number; deletedIds: string[] }> {
-        const validIds = ids.filter(id => mongoose.Types.ObjectId.isValid(id));
-
-        if (validIds.length === 0) {
-            throw new Error("No valid report IDs provided");
-        }
-
-        const result = await Report.deleteMany({
-            _id: { $in: validIds }
-        });
-
-        return {
-            deletedCount: result.deletedCount || 0,
-            deletedIds: validIds
-        };
-    }
 
     // Get published reports only (for public viewing)
     async getPublishedReports(paginationDto: IPaginationDto): Promise<{

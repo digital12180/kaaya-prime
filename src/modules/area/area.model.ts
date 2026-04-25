@@ -83,4 +83,8 @@ AreaSchema.pre("validate", function () { //auto slug generate
       .replace(/[^\w-]+/g, "");
   }
 });
+AreaSchema.index({ createdAt: -1 });
+AreaSchema.index({ name: 1 });
+AreaSchema.index({ city: 1 });
+AreaSchema.index({ name: "text", city: "text" });
 export const Area = mongoose.model<IArea>("Area", AreaSchema);
