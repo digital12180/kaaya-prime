@@ -58,7 +58,8 @@ export class AreaService {
             };
 
             const area = new Area(areaData);
-
+            console.log("area-----", area);
+            
             await area.save();
             await Opportunity.findByIdAndUpdate(
                 opportuntiy._id,
@@ -74,51 +75,48 @@ export class AreaService {
     }
 
     // Get all areas with pagination and search
-    async getAllAreas(paginationDto: IPaginationDto) {
+    async getAllAreas(paginationDto: IPaginationDto): Promise<{
+        areas: Response | any;
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    }> {
         const page = Math.max(1, paginationDto.page || 1);
-        const limit = Math.min(50, Math.max(1, paginationDto.limit || 10)); // reduce max
+        const limit = Math.min(100, Math.max(1, paginationDto.limit || 10));
         const skip = (page - 1) * limit;
 
-        const query: any = {};
+        let query: any = {};
 
-        // ✅ Search Optimization
-        if (paginationDto.search?.trim()) {
+        // Search functionality (text search)
+        if (paginationDto.search && paginationDto.search.trim()) {
             query.$text = { $search: paginationDto.search };
         }
 
-        // ✅ Sorting
-        const sort: any = paginationDto.sortBy
-            ? { [paginationDto.sortBy]: paginationDto.sortOrder === 'asc' ? 1 : -1 }
-            : { createdAt: -1 };
-
-        // ✅ Projection (VERY IMPORTANT)
-        const projection = {
-            name: 1,
-            city: 1,
-            createdAt: 1
-        };
-
-        const areasPromise = Area.find(query)
-            .select(projection)
-            .sort(sort)
-            .skip(skip)
-            .limit(limit)
-            .lean();
-
-        // ✅ Faster count (optional optimization)
-        const totalPromise = Area.estimatedDocumentCount(); // fast but not filtered
+        // Sorting
+        let sort: any = { createdAt: -1 };
+        if (paginationDto.sortBy) {
+            const sortOrder = paginationDto.sortOrder === 'asc' ? 1 : -1;
+            sort = { [paginationDto.sortBy]: sortOrder };
+        }
 
         const [areas, total] = await Promise.all([
-            areasPromise,
-            totalPromise
+            Area.find(query)
+                .sort(sort)
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            Area.countDocuments(query)
         ]);
 
+        const totalPages = Math.ceil(total / limit);
+
         return {
-            areas,
+            areas: areas,
             total,
             page,
             limit,
-            totalPages: Math.ceil(total / limit)
+            totalPages
         };
     }
 
@@ -352,9 +350,6 @@ export class AreaService {
 
 
     async searchAreaByName(name: string): Promise<Response | any> {
-        if (!name?.trim()) {
-            throw new ApiError(400, "Search keyword is required");
-        }
         const result = await Area.find({
             name: { $regex: name, $options: 'i' }
         })

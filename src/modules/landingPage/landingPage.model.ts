@@ -66,8 +66,7 @@ LandingPageSchema.index({
 // 🔥 fast lookup
 LandingPageSchema.index({ slug: 1, status: 1 });
 LandingPageSchema.index({ createdAt: -1 });
-LandingPageSchema.index({ status: 1 });
-LandingPageSchema.index({ formType: 1 });
+// LandingPageSchema.index({ formType: 1 });
 LandingPageSchema.index({ name: "text", description: "text" }); // for search
 
 export const LandingPage = mongoose.model<ILandingPage>(
