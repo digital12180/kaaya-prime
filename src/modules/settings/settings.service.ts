@@ -233,58 +233,6 @@ export class SettingService {
     };
   }
 
-  // Bulk create/update settings
-  async bulkUpsertSettings(settings: ICreateSettingDto[]): Promise<SettingResponseDto[]|any> {
-    if (!settings || !Array.isArray(settings) || settings.length === 0) {
-      throw new Error("Settings array is required");
-    }
-
-    const results:any = [];
-
-    for (const setting of settings) {
-      try {
-        // Validate against predefined settings if exists
-        const predefined = PREDEFINED_SETTINGS[setting.key as keyof typeof PREDEFINED_SETTINGS];
-        if (predefined) {
-          const validationErrors = validateSettingValue(setting.key, setting.value, predefined.type);
-          if (validationErrors.length > 0) {
-            throw new Error(validationErrors.join(", "));
-          }
-        }
-
-        const updated = await Setting.findOneAndUpdate(
-          { key: setting.key },
-          { value: setting.value, updatedAt: new Date() },
-          { new: true, upsert: true, runValidators: true }
-        ).lean();
-
-        results.push(updated);
-      } catch (error: any) {
-        throw new Error(`Failed to upsert setting '${setting.key}': ${error.message}`);
-      }
-    }
-
-    return results;
-  }
-
-  // Bulk delete settings
-  async bulkDeleteSettings(ids: string[]): Promise<{ deletedCount: number; deletedIds: string[] }> {
-    const validIds = ids.filter(id => mongoose.Types.ObjectId.isValid(id));
-
-    if (validIds.length === 0) {
-      throw new Error("No valid setting IDs provided");
-    }
-
-    const result = await Setting.deleteMany({
-      _id: { $in: validIds }
-    });
-
-    return {
-      deletedCount: result.deletedCount || 0,
-      deletedIds: validIds
-    };
-  }
-
   // Get setting statistics
   async getSettingStatistics(): Promise<any> {
     const [totalSettings, recentSettings, predefinedCount] = await Promise.all([

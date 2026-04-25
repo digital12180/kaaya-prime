@@ -16,7 +16,6 @@ router.get("/check-slug",verifyToken, areaController.checkSlugUniqueness);
 router.get("/:id",verifyToken, areaController.getAreaById);
 router.put("/:id",verifyToken,adminOnly,upload.single('image'), areaController.updateArea);
 router.delete("/:id",verifyToken,adminOnly, areaController.deleteArea);
-router.post("/bulk-delete",verifyToken, areaController.bulkDeleteAreas);
 router.get("/search/name",verifyToken,areaController.searchAreaByName);
 
 export default router;

@@ -334,33 +334,6 @@ export class ReportController {
         }
     };
 
-    // Bulk delete reports
-    bulkDeleteReports = async (req: Request, res: Response): Promise<void> => {
-        try {
-            const { ids } = req.body;
-
-            if (!ids || !Array.isArray(ids) || ids.length === 0) {
-                res.status(400).json({
-                    success: false,
-                    message: "Please provide an array of report IDs to delete"
-                });
-                return;
-            }
-
-            const result = await this.reportService.bulkDeleteReports(ids);
-            res.status(200).json({
-                success: true,
-                message: `${result.deletedCount} reports deleted successfully`,
-                data: result
-            });
-        } catch (error: any) {
-            res.status(400).json({
-                success: false,
-                message: error.message || "Failed to delete reports",
-                error: process.env.NODE_ENV === "development" ? error.stack : undefined
-            });
-        }
-    };
     getReportsBySlug = async (req: Request, res: Response): Promise<void> => {
         try {
             const { slug } = req.params;

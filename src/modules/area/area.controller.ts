@@ -218,33 +218,6 @@ export class AreaController {
         }
     };
 
-    // Bulk delete areas
-    bulkDeleteAreas = async (req: Request, res: Response): Promise<void> => {
-        try {
-            const { ids } = req.body;
-
-            if (!ids || !Array.isArray(ids) || ids.length === 0) {
-                res.status(400).json({
-                    success: false,
-                    message: "Please provide an array of area IDs to delete"
-                });
-                return;
-            }
-
-            const result = await this.areaService.bulkDeleteAreas(ids);
-            res.status(200).json({
-                success: true,
-                message: `${result.deletedCount} areas deleted successfully`,
-                data: result
-            });
-        } catch (error: any) {
-            res.status(400).json({
-                success: false,
-                message: error.message || "Failed to delete areas",
-                error: process.env.NODE_ENV === "development" ? error.stack : undefined
-            });
-        }
-    };
 
     // Check slug uniqueness
     checkSlugUniqueness = async (req: Request, res: Response): Promise<void> => {

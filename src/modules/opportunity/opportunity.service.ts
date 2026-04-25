@@ -263,24 +263,6 @@ export class OpportunityService {
         };
     }
 
-    // Bulk delete opportunities
-    async bulkDeleteOpportunities(ids: string[]): Promise<{ deletedCount: number; deletedIds: string[] }> {
-        const validIds = ids.filter(id => mongoose.Types.ObjectId.isValid(id));
-
-        if (validIds.length === 0) {
-            throw new Error("No valid opportunity IDs provided");
-        }
-
-        const result = await Opportunity.deleteMany({
-            _id: { $in: validIds }
-        });
-
-        return {
-            deletedCount: result.deletedCount || 0,
-            deletedIds: validIds
-        };
-    }
-
     async searchOpportunity(title: string): Promise<Response | any> {
         if (!title) {
             throw new ApiError(400, "empty data to search")

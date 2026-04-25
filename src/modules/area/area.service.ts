@@ -23,7 +23,8 @@ export class AreaService {
             const slug = generateSlug(createDto.name);
 
             // Check if slug already exists
-            const existingArea = await Area.findOne({ slug });
+            const existingArea = await Area.findOne({ slug }).select("+slug +_id");
+
             if (existingArea) {
                 throw new Error(`Area with slug '${slug}' already exists. Please use a different name.`);
             }
@@ -42,10 +43,12 @@ export class AreaService {
             }
 
             createDto.image = imageUrl;
-            const opportuntiy = await Opportunity.findById(createDto.opportunities);
+            const opportuntiy = await Opportunity.findById(createDto.opportunities).select('+_id');
             if (!opportuntiy) {
                 throw new Error("Opportunity not found");
             }
+
+
             // Set default meta title and description if not provided
             const areaData = {
                 ...createDto,
@@ -55,6 +58,7 @@ export class AreaService {
             };
 
             const area = new Area(areaData);
+
             await area.save();
             await Opportunity.findByIdAndUpdate(
                 opportuntiy._id,
@@ -70,48 +74,51 @@ export class AreaService {
     }
 
     // Get all areas with pagination and search
-    async getAllAreas(paginationDto: IPaginationDto): Promise<{
-        areas: Response | any;
-        total: number;
-        page: number;
-        limit: number;
-        totalPages: number;
-    }> {
+    async getAllAreas(paginationDto: IPaginationDto) {
         const page = Math.max(1, paginationDto.page || 1);
-        const limit = Math.min(100, Math.max(1, paginationDto.limit || 10));
+        const limit = Math.min(50, Math.max(1, paginationDto.limit || 10)); // reduce max
         const skip = (page - 1) * limit;
 
-        let query: any = {};
+        const query: any = {};
 
-        // Search functionality (text search)
-        if (paginationDto.search && paginationDto.search.trim()) {
+        // ✅ Search Optimization
+        if (paginationDto.search?.trim()) {
             query.$text = { $search: paginationDto.search };
         }
 
-        // Sorting
-        let sort: any = { createdAt: -1 };
-        if (paginationDto.sortBy) {
-            const sortOrder = paginationDto.sortOrder === 'asc' ? 1 : -1;
-            sort = { [paginationDto.sortBy]: sortOrder };
-        }
+        // ✅ Sorting
+        const sort: any = paginationDto.sortBy
+            ? { [paginationDto.sortBy]: paginationDto.sortOrder === 'asc' ? 1 : -1 }
+            : { createdAt: -1 };
+
+        // ✅ Projection (VERY IMPORTANT)
+        const projection = {
+            name: 1,
+            city: 1,
+            createdAt: 1
+        };
+
+        const areasPromise = Area.find(query)
+            .select(projection)
+            .sort(sort)
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
+        // ✅ Faster count (optional optimization)
+        const totalPromise = Area.estimatedDocumentCount(); // fast but not filtered
 
         const [areas, total] = await Promise.all([
-            Area.find(query)
-                .sort(sort)
-                .skip(skip)
-                .limit(limit)
-                .lean(),
-            Area.countDocuments(query)
+            areasPromise,
+            totalPromise
         ]);
 
-        const totalPages = Math.ceil(total / limit);
-
         return {
-            areas: areas,
+            areas,
             total,
             page,
             limit,
-            totalPages
+            totalPages: Math.ceil(total / limit)
         };
     }
 
@@ -333,24 +340,6 @@ export class AreaService {
         };
     }
 
-    // Bulk delete areas
-    async bulkDeleteAreas(ids: string[]): Promise<{ deletedCount: number; deletedIds: string[] }> {
-        const validIds = ids.filter(id => mongoose.Types.ObjectId.isValid(id));
-
-        if (validIds.length === 0) {
-            throw new Error("No valid area IDs provided");
-        }
-
-        const result = await Area.deleteMany({
-            _id: { $in: validIds }
-        });
-
-        return {
-            deletedCount: result.deletedCount || 0,
-            deletedIds: validIds
-        };
-    }
-
     // Check if slug is unique (for real-time validation)
     async isSlugUnique(slug: string, excludeId?: string): Promise<boolean> {
         const query: any = { slug };
@@ -363,6 +352,9 @@ export class AreaService {
 
 
     async searchAreaByName(name: string): Promise<Response | any> {
+        if (!name?.trim()) {
+            throw new ApiError(400, "Search keyword is required");
+        }
         const result = await Area.find({
             name: { $regex: name, $options: 'i' }
         })

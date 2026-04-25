@@ -388,34 +388,6 @@ export class LandingPageController {
         }
     };
 
-    // Bulk delete landing pages
-    bulkDeleteLandingPages = async (req: Request, res: Response): Promise<void> => {
-        try {
-            const { ids } = req.body;
-            
-            if (!ids || !Array.isArray(ids) || ids.length === 0) {
-                res.status(400).json({
-                    success: false,
-                    message: "Please provide an array of landing page IDs to delete"
-                });
-                return;
-            }
-
-            const result = await this.landingPageService.bulkDeleteLandingPages(ids);
-            res.status(200).json({
-                success: true,
-                message: `${result.deletedCount} landing pages deleted successfully`,
-                data: result
-            });
-        } catch (error: any) {
-            res.status(400).json({
-                success: false,
-                message: error.message || "Failed to delete landing pages",
-                error: process.env.NODE_ENV === "development" ? error.stack : undefined
-            });
-        }
-    };
-
     // Check slug uniqueness
     checkSlugUniqueness = async (req: Request, res: Response): Promise<void> => {
         try {
