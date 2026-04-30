@@ -6,11 +6,7 @@ const router = express.Router();
 const controller = new InsightController();
 
 // Public routes
-// router.post("/create", controller.create);
-router.post("/create", (req, res) => {
-  console.log("Route hit");
-  res.send("Working");
-});
+router.post("/create", controller.create);
 router.get("/all", controller.getAll);
 router.get("/dashboard", controller.dashboard);
 router.get("/entity/:entity", controller.getByEntity);
