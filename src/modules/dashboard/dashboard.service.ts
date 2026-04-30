@@ -44,6 +44,122 @@ export class dashboardService {
 
         return metrics;
     }
+      getMetricsByQuarter = async (quarter: string): Promise<IMetrics | null> => {
+        const metrics = await Metrics.findOne({ quarter });
+        if (!metrics) {
+            throw new Error(`Metrics for quarter ${quarter} not found`);
+        }
+        return metrics;
+    }
+
+    // NEW: Update metrics by quarter
+    updateMetrics = async (quarter: string, data: Partial<IMetrics>): Promise<IMetrics | null> => {
+        // Remove quarter from update data if present to prevent changing the unique identifier
+        const { quarter: _, ...updateData } = data;
+        
+        const metrics = await Metrics.findOneAndUpdate(
+            { quarter },
+            updateData,
+            { new: true, runValidators: true }
+        );
+        
+        if (!metrics) {
+            throw new Error(`Metrics for quarter ${quarter} not found`);
+        }
+        
+        return metrics;
+    }
+
+    // NEW: Update specific fields only (PATCH)
+    patchMetrics = async (quarter: string, data: Partial<IMetrics>): Promise<IMetrics | null> => {
+        const allowedFields = [
+            'average_premium_yield',
+            'developer_coverage', 
+            'investor_nationalities',
+            'transaction_growth',
+            'capital_appreciation',
+            'volume_aed'
+        ];
+        
+        const filteredData: any = {};
+        Object.keys(data).forEach(key => {
+            if (allowedFields.includes(key) && data[key as keyof IMetrics] !== undefined) {
+                filteredData[key] = data[key as keyof IMetrics];
+            }
+        });
+        
+        if (Object.keys(filteredData).length === 0) {
+            throw new Error('No valid fields to update');
+        }
+        
+        const metrics = await Metrics.findOneAndUpdate(
+            { quarter },
+            filteredData,
+            { new: true, runValidators: true }
+        );
+        
+        if (!metrics) {
+            throw new Error(`Metrics for quarter ${quarter} not found`);
+        }
+        
+        return metrics;
+    }
+
+    // NEW: Delete metrics by quarter
+    deleteMetrics = async (quarter: string): Promise<void> => {
+        const result = await Metrics.findOneAndDelete({ quarter });
+        if (!result) {
+            throw new Error(`Metrics for quarter ${quarter} not found`);
+        }
+    }
+
+    // NEW: Get all quarters with pagination
+    getAllMetrics = async (page: number = 1, limit: number = 10, sortOrder: 'asc' | 'desc' = 'desc'): Promise<{
+        data: IMetrics[];
+        pagination: {
+            page: number;
+            limit: number;
+            total: number;
+            totalPages: number;
+        }
+    }> => {
+        const skip = (page - 1) * limit;
+        const sort = sortOrder === 'desc' ? -1 : 1;
+        
+        const [data, total] = await Promise.all([
+            Metrics.find()
+                .sort({ quarter: sort })
+                .skip(skip)
+                .limit(limit),
+            Metrics.countDocuments()
+        ]);
+        
+        return {
+            data,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit)
+            }
+        };
+    }
+     getTopPerformers = async (limit: number = 5): Promise<{
+        topByVolume: IMetrics[];
+        topByGrowth: IMetrics[];
+    }> => {
+        const allMetrics = await Metrics.find().sort({ quarter: -1 }).limit(limit);
+        
+        const topByVolume = [...allMetrics].sort((a, b) => 
+            (b.volume_aed || 0) - (a.volume_aed || 0)
+        ).slice(0, limit);
+        
+        const topByGrowth = [...allMetrics].sort((a, b) => 
+            (b.transaction_growth || 0) - (a.transaction_growth || 0)
+        ).slice(0, limit);
+        
+        return { topByVolume, topByGrowth };
+    }
 }
 
 import { Insight } from "./insight.model.js";
