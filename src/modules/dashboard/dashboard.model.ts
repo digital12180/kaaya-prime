@@ -53,6 +53,6 @@ const MetricsSchema: Schema<IMetrics> = new Schema(
   }
 );
 
-MetricsSchema.index({ quarter: 1 }, { unique: true });
+// MetricsSchema.index({ quarter: 1 }, { unique: true });
 
 export const Metrics = mongoose.model<IMetrics>("Metrics", MetricsSchema);
