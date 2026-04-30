@@ -9,18 +9,22 @@ import landingPageRoutes from "../modules/landingPage/landingPage.routes.js"
 import userRoutes from "../modules/user/user.routes.js";
 import dashboardRoutes from "../modules/dashboard/dashboard.route.js";
 import insightRoutes from "../modules/dashboard/Insight.route.js";
+import rentalyieldRoutes from "../modules/dashboard/rental-yield.route.js";
+import developerRoutes from "../modules/dashboard/developer.route.js";
 const router = Router();
 
 router.use('/auth', authRoutes);
 router.use('/lead', leadRoutes);
 router.use('/opportunities', opportunityRoutes);
-router.use('/areas',areaRoutes);
-router.use('/blogs',blogRoutes);
-router.use('/reports',reportRoutes);
-router.use('/landing-pages',landingPageRoutes);
-router.use('/users',userRoutes);
-router.use('/metrics',dashboardRoutes);
-router.use('/insights',insightRoutes);
+router.use('/areas', areaRoutes);
+router.use('/blogs', blogRoutes);
+router.use('/reports', reportRoutes);
+router.use('/landing-pages', landingPageRoutes);
+router.use('/users', userRoutes);
+router.use('/metrics', dashboardRoutes);
+router.use('/insights', insightRoutes);
+router.use('/rental-yields', rentalyieldRoutes);
+router.use('/developer-scores',developerRoutes);
 
 
 
