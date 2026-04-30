@@ -71,3 +71,44 @@ export const updateMultipleScoresSchema = Joi.object({
   ).min(1).required(),
   quarter: Joi.string().pattern(/^Q[1-4]\s\d{4}$/).optional(),
 });
+
+
+const metricSchema = Joi.object({
+  value: Joi.string().required(),
+  label: Joi.string().required(),
+});
+
+export const createStageSchema = Joi.object({
+  tag: Joi.string().required(),
+  order: Joi.number().min(1).max(5).required(),
+  title: Joi.string().required(),
+  titleHtml: Joi.string().optional().allow(null),
+  body: Joi.string().required(),
+  metrics: Joi.array().items(metricSchema).optional(),
+  isActive: Joi.boolean().default(true),
+  category: Joi.string()
+    .valid("spatial", "developer", "market", "infrastructure", "advisory")
+    .required(),
+});
+
+export const updateStageSchema = Joi.object({
+  tag: Joi.string(),
+  order: Joi.number().min(1).max(5),
+  title: Joi.string(),
+  titleHtml: Joi.string().optional().allow(null),
+  body: Joi.string(),
+  metrics: Joi.array().items(metricSchema),
+  isActive: Joi.boolean(),
+  category: Joi.string().valid("spatial", "developer", "market", "infrastructure", "advisory"),
+}).min(1);
+
+export const bulkCreateStagesSchema = Joi.array().items(createStageSchema).min(1);
+
+export const reorderStagesSchema = Joi.object({
+  stages: Joi.array().items(
+    Joi.object({
+      id: Joi.string().required(),
+      order: Joi.number().min(1).max(5).required(),
+    })
+  ).min(1).required(),
+});
