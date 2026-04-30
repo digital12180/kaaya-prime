@@ -62,6 +62,145 @@ export class dashboardController {
             });
         }
     }  
+
+    getMetricsByQuarter = async (req: Request, res: Response) => {
+        try {
+            const { quarter } = req.params;
+            const metrics = await this.dashboardService.getMetricsByQuarter(quarter as string);
+            res.status(200).json({
+                success: true,
+                data: metrics
+            });
+        } catch (error: any) {
+            if (error.message.includes('not found')) {
+                res.status(404).json({
+                    success: false,
+                    message: error.message
+                });
+            } else {
+                res.status(500).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+        }
+    }
+
+    // NEW: Update metrics by quarter (full update)
+    updateMetrics = async (req: Request, res: Response) => {
+        try {
+            const { quarter } = req.params;
+            const updateData = req.body;
+            const metrics = await this.dashboardService.updateMetrics(quarter as string, updateData);
+            res.status(200).json({
+                success: true,
+                data: metrics,
+                message: "Metrics updated successfully"
+            });
+        } catch (error: any) {
+            if (error.message.includes('not found')) {
+                res.status(404).json({
+                    success: false,
+                    message: error.message
+                });
+            } else {
+                res.status(500).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+        }
+    }
+
+    // NEW: Patch metrics (partial update)
+    patchMetrics = async (req: Request, res: Response) => {
+        try {
+            const { quarter } = req.params;
+            const updateData = req.body;
+            const metrics = await this.dashboardService.patchMetrics(quarter as string, updateData);
+            res.status(200).json({
+                success: true,
+                data: metrics,
+                message: "Metrics patched successfully"
+            });
+        } catch (error: any) {
+            if (error.message.includes('not found')) {
+                res.status(404).json({
+                    success: false,
+                    message: error.message
+                });
+            } else if (error.message.includes('No valid fields')) {
+                res.status(400).json({
+                    success: false,
+                    message: error.message
+                });
+            } else {
+                res.status(500).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+        }
+    }
+
+    // NEW: Delete metrics by quarter
+    deleteMetrics = async (req: Request, res: Response) => {
+        try {
+            const { quarter } = req.params;
+            await this.dashboardService.deleteMetrics(quarter as string );
+            res.status(200).json({
+                success: true,
+                message: `Metrics for quarter ${quarter} deleted successfully`
+            });
+        } catch (error: any) {
+            if (error.message.includes('not found')) {
+                res.status(404).json({
+                    success: false,
+                    message: error.message
+                });
+            } else {
+                res.status(500).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+        }
+    }
+
+    // NEW: Get all metrics with pagination
+    getAllMetrics = async (req: Request, res: Response) => {
+        try {
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const sortOrder = (req.query.sortOrder as 'asc' | 'desc') || 'desc';
+            
+            const result = await this.dashboardService.getAllMetrics(page, limit, sortOrder);
+            res.status(200).json({
+                success: true,
+                ...result
+            });
+        } catch (error: any) {
+            res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
+    getTopPerformers = async (req: Request, res: Response) => {
+        try {
+            const limit = parseInt(req.query.limit as string) || 5;
+            const performers = await this.dashboardService.getTopPerformers(limit);
+            res.status(200).json({
+                success: true,
+                data: performers
+            });
+        } catch (error: any) {
+            res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
 }
 
 
