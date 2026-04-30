@@ -7,6 +7,8 @@ import reportRoutes from "../modules/report/report.routes.js"
 import { Router } from "express";
 import landingPageRoutes from "../modules/landingPage/landingPage.routes.js"
 import userRoutes from "../modules/user/user.routes.js";
+import dashboardRoutes from "../modules/dashboard/dashboard.route.js";
+import insightRoutes from "../modules/dashboard/Insight.route.js";
 const router = Router();
 
 router.use('/auth', authRoutes);
@@ -17,6 +19,9 @@ router.use('/blogs',blogRoutes);
 router.use('/reports',reportRoutes);
 router.use('/landing-pages',landingPageRoutes);
 router.use('/users',userRoutes);
+router.use('/metrics',dashboardRoutes);
+router.use('/insights',insightRoutes);
+
 
 
 export default router;
