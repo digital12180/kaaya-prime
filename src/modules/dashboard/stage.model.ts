@@ -76,7 +76,7 @@ const StageSchema: Schema<IStage> = new Schema(
 );
 
 // Indexes for better query performance
-StageSchema.index({ order: 1 });
+// StageSchema.index({ order: 1 });
 StageSchema.index({ category: 1 });
 StageSchema.index({ isActive: 1 });
 
