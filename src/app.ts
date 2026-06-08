@@ -20,6 +20,7 @@ app.use(helmet({
 const allowedOrigins = [
   'https://kaaya-prime-realty-crm.vercel.app',
   'https://kaaya-prime-realty-next.vercel.app',
+  'https://kaaya-realty-prime.vercel.app',
   'http://localhost:3500',
   '*'
 ];
