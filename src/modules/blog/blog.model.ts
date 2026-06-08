@@ -7,7 +7,12 @@ export interface IBlog extends Document {
     image?: string;
     metaTitle?: string;
     metaDescription?: string;
-    status: "PUBLISHED" | "DRAFT"|"ARCHIVED";
+    status: "PUBLISHED" | "DRAFT" | "ARCHIVED";
+    category:
+    | "Architecture"
+    | "Interior Design"
+    | "Market Trends"
+    | "Luxury Lifestyle";
     createdAt: Date;
     updatedAt: Date;
 }
@@ -34,7 +39,11 @@ const BlogSchema: Schema<IBlog> = new Schema(
             type: String,
             required: true,
         },
-
+        category: {
+            type: String,
+            required: true,
+            enum: ["Architecture", "Interior Design", "Market Trends", "Luxury Lifestyle"]
+        },
         image: {
             type: String,
             default: "",
@@ -54,7 +63,7 @@ const BlogSchema: Schema<IBlog> = new Schema(
 
         status: {
             type: String,
-            enum: ["PUBLISHED", "DRAFT","ARCHIVED"],
+            enum: ["PUBLISHED", "DRAFT", "ARCHIVED"],
             default: "DRAFT",
             index: true, // 🔥 filter published blogs
         },

@@ -51,6 +51,7 @@ export class BlogController {
                 limit: req.query.limit ? parseInt(req.query.limit as string) : 10,
                 search: req.query.search as string,
                 status: req.query.status as any,
+                category: req.query.category as any,
                 sortBy: req.query.sortBy as string,
                 sortOrder: (req.query.sortOrder as 'asc' | 'desc') || 'desc'
             };
@@ -158,6 +159,7 @@ export class BlogController {
                 page: req.query.page ? parseInt(req.query.page as string) : 1,
                 limit: req.query.limit ? parseInt(req.query.limit as string) : 10,
                 status: req.query.status as any,
+                category: req.query.category as any,
                 search: title
             };
 
@@ -242,6 +244,7 @@ export class BlogController {
                 page: req.query.page ? parseInt(req.query.page as string) : 1,
                 limit: req.query.limit ? parseInt(req.query.limit as string) : 10,
                 search: req.query.search as string,
+                category: req.query.category as any,
                 sortBy: req.query.sortBy as string,
                 sortOrder: (req.query.sortOrder as 'asc' | 'desc') || 'desc'
             };
