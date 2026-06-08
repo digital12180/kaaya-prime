@@ -1,5 +1,5 @@
 // controllers/blog.controller.ts
-import type{ Request, Response } from "express";
+import type { Request, Response } from "express";
 import { BlogService } from "./blog.service.js";
 import {
     validateCreateBlog,
@@ -13,6 +13,20 @@ export class BlogController {
         this.blogService = new BlogService();
     }
 
+
+
+    getCategories = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const categories = await this.blogService.getCategories();
+
+            res.status(200).json({ category: categories });
+        } catch (error: any) {
+            res.status(500).json({
+                success: false,
+                message: error.message || "Failed to retrieve categories"
+            });
+        }
+    };
     // Create blog
     createBlog = async (req: Request, res: Response): Promise<void> => {
         try {
@@ -26,8 +40,8 @@ export class BlogController {
                 });
                 return;
             }
-            const file=req.file as Express.Multer.File;
-            const blog = await this.blogService.createBlog(req.body,file);
+            const file = req.file as Express.Multer.File;
+            const blog = await this.blogService.createBlog(req.body, file);
             res.status(201).json({
                 success: true,
                 message: "Blog created successfully",
@@ -146,7 +160,7 @@ export class BlogController {
     searchBlogsByTitle = async (req: Request, res: Response): Promise<void> => {
         try {
             const { title } = req.query;
-            
+
             if (!title || typeof title !== 'string') {
                 res.status(400).json({
                     success: false,
@@ -188,7 +202,7 @@ export class BlogController {
     updateBlog = async (req: Request, res: Response): Promise<void> => {
         try {
             const { id } = req.params;
-            
+
             // Validate update data
             const validationErrors = validateUpdateBlog(req.body);
             if (validationErrors.length > 0) {
@@ -199,8 +213,8 @@ export class BlogController {
                 });
                 return;
             }
-             const file=req.file as Express.Multer.File;
-            const blog = await this.blogService.updateBlog(id as string, req.body,file);
+            const file = req.file as Express.Multer.File;
+            const blog = await this.blogService.updateBlog(id as string, req.body, file);
             res.status(200).json({
                 success: true,
                 message: "Blog updated successfully",
@@ -208,7 +222,7 @@ export class BlogController {
             });
         } catch (error: any) {
             const status = error.message === "Invalid blog ID format" ? 400 :
-                          error.message.includes("already exists") ? 409 : 404;
+                error.message.includes("already exists") ? 409 : 404;
             res.status(status).json({
                 success: false,
                 message: error.message || "Failed to update blog",

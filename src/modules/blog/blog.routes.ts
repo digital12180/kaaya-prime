@@ -10,6 +10,7 @@ const blogController = new BlogController();
 // Blog routes
 router.post("/create", verifyToken, EditorAndadmin, upload.single('image'), blogController.createBlog);
 router.get("/get-all", blogController.getAllBlogs);
+router.get("/categories", blogController.getCategories);
 router.get("/published", verifyToken, EditorAndadmin, blogController.getPublishedBlogs);
 router.get("/statistics", verifyToken, EditorAndadmin, blogController.getBlogStatistics);
 router.get("/search/title", blogController.searchBlogsByTitle);
