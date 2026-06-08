@@ -88,7 +88,7 @@ export class BlogController {
             }
 
             // Validate status
-            if (paginationDto.status && !['draft', 'published'].includes(paginationDto.status)) {
+            if (paginationDto.status && !['DRAFT', 'PUBLISHED'].includes(paginationDto.status)) {
                 res.status(400).json({
                     success: false,
                     message: "Status must be either 'draft' or 'published'"

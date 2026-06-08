@@ -99,7 +99,7 @@ export class BlogService {
     if (paginationDto.category) {
       query.category = paginationDto.category;
     }
-
+    
     // Sorting
     let sort: any = { createdAt: -1 };
     if (paginationDto.sortBy) {
