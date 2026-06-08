@@ -12,6 +12,17 @@ import cloudinary, { uploadToCloudinary } from "../../config/cloudinary.js";
 
 export class BlogService {
 
+  // services/blog.service.ts
+
+  async getCategories(): Promise<string[]> {
+    return [
+      "Architecture",
+      "Interior Design",
+      "Market Trends",
+      "Luxury Lifestyle"
+    ];
+  }
+  
   // Create a new blog
   async createBlog(createDto: ICreateBlogDto, file: Express.Multer.File): Promise<BlogResponseDto | any> {
     try {
@@ -85,7 +96,7 @@ export class BlogService {
       query.status = paginationDto.status;
     }
 
-     if (paginationDto.category) {
+    if (paginationDto.category) {
       query.category = paginationDto.category;
     }
 
