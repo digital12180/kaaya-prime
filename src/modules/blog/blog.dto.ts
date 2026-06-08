@@ -4,6 +4,11 @@ export interface ICreateBlogDto {
     title: string;
     content: string;
     image: string;
+    category:
+    | "Architecture"
+    | "Interior Design"
+    | "Market Trends"
+    | "Luxury Lifestyle";
     metaTitle: string;
     metaDescription: string;
     status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
@@ -26,6 +31,11 @@ export interface IBlogResponseDto {
     image: string;
     metaTitle: string;
     metaDescription: string;
+    category:
+    | "Architecture"
+    | "Interior Design"
+    | "Market Trends"
+    | "Luxury Lifestyle";
     status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
     createdAt: Date;
     updatedAt: Date;
@@ -35,6 +45,11 @@ export interface IPaginationDto {
     page?: number;
     limit?: number;
     search?: string;
+    category:
+    | "Architecture"
+    | "Interior Design"
+    | "Market Trends"
+    | "Luxury Lifestyle";
     status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
@@ -48,6 +63,11 @@ export class BlogResponseDto implements IBlogResponseDto {
     image: string;
     metaTitle: string;
     metaDescription: string;
+    category:
+        | "Architecture"
+        | "Interior Design"
+        | "Market Trends"
+        | "Luxury Lifestyle";
     status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
     createdAt: Date;
     updatedAt: Date;
@@ -61,6 +81,7 @@ export class BlogResponseDto implements IBlogResponseDto {
         this.metaTitle = blog.metaTitle || "";
         this.metaDescription = blog.metaDescription || "";
         this.status = blog.status;
+        this.category = blog.category;
         this.createdAt = blog.createdAt;
         this.updatedAt = blog.updatedAt;
     }
