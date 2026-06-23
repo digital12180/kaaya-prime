@@ -1,19 +1,21 @@
 import mongoose, { Document, Schema } from "mongoose";
 
-export interface IOpportunity extends Document {
+export interface IProperty extends Document {
   title: string;
   slug: string;
-  description: string;
+  price: string;
   location: string;
   images: string[];
-  area: mongoose.Types.ObjectId;
-  landingPage: mongoose.Types.ObjectId[],
-  status: "ACTIVE" | "UPCOMING" | "SOLD OUT" | "UNDER REVIEW";
+  bedrooms: string;
+  sqft: string;
+  bathrooms: number;
+  status: "For Rent" | "For Buy";
+  type: "Apartment" | "House" | "Condo" | "Villa" | "Townhouse";
   createdAt: Date;
   updatedAt: Date;
 }
 
-const OpportunitySchema: Schema<IOpportunity> = new Schema(
+const PropertySchema: Schema<IProperty> = new Schema(
   {
     title: {
       type: String,
@@ -25,25 +27,29 @@ const OpportunitySchema: Schema<IOpportunity> = new Schema(
       type: String,
       trim: true,
     },
-    description: {
+    price: {
       type: String,
       required: true,
     },
-
     location: {
       type: String,
       required: true,
       trim: true,
       index: true, // 🔥 filter by city/location
     },
-    landingPage: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'LandingPage',
-      default: []
-    }],
-    area: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Area',
+    bedrooms: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    sqft: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    bathrooms: {
+      type: Number,
+      required: true,
     },
     images:
       [{
@@ -52,10 +58,13 @@ const OpportunitySchema: Schema<IOpportunity> = new Schema(
       }],
     status: {
       type: String,
-      enum: ["ACTIVE", "UPCOMING", "SOLD OUT", "UNDER REVIEW"],
-      default: "ACTIVE",
-      index: true, // 🔥 filtering
+      enum: ["For Rent", "For Buy"],
+      default: "For Rent"
     },
+    type: {
+      type: String,
+      enum: ["Apartment", "House", "Condo", "Villa", "Townhouse"],
+    }
   },
   {
     timestamps: true, // createdAt + updatedAt
@@ -63,16 +72,15 @@ const OpportunitySchema: Schema<IOpportunity> = new Schema(
 );
 
 // 🔥 TEXT INDEX (for search)
-OpportunitySchema.index({
+PropertySchema.index({
   title: "text",
-  description: "text",
   location: "text",
 });
 
 // 🔥 COMPOUND INDEX (for listing + filters)
-OpportunitySchema.index({ status: 1, location: 1, createdAt: -1 });
+PropertySchema.index({ status: 1, location: 1, createdAt: -1 });
 
-export const Opportunity = mongoose.model<IOpportunity>(
-  "Opportunity",
-  OpportunitySchema
+export const Property = mongoose.model<IProperty>(
+  "Property",
+  PropertySchema
 );
