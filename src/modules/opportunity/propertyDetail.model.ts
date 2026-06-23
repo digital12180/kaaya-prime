@@ -17,7 +17,7 @@ export interface IPropertyDetails extends Document {
     floorPlanUrl: string;
 }
 
-const PropertyDetailSchema = new Schema<IPropertyDetails>(
+const PropertyDetailSchema = new Schema < IPropertyDetails > (
     {
         id: {
             type: String,
@@ -83,7 +83,7 @@ const PropertyDetailSchema = new Schema<IPropertyDetails>(
     }
 );
 
-export const PropertyDetailModel = mongoose.model<IPropertyDetails>(
+export const PropertyDetailModel = mongoose.model < IPropertyDetails > (
     "PropertyDetail",
     PropertyDetailSchema
 );
