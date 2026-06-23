@@ -15,7 +15,7 @@ const router = Router();
 
 router.use('/auth', authRoutes);
 router.use('/lead', leadRoutes);
-router.use('/opportunities', opportunityRoutes);
+router.use('/property', opportunityRoutes);
 router.use('/blogs', blogRoutes);
 // router.use('/reports', reportRoutes);
 // router.use('/landing-pages', landingPageRoutes);
