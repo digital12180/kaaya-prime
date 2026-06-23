@@ -6,7 +6,14 @@ import { PropertyResponseDto } from "./opportunity.dto.js";
 
 
 const propertyService = new PropertyService();
-
+export const FILTER_OPTIONS = {
+  status: ["For Rent", "For Buy"],
+  location: ["Mumbai", "Delhi", "Bangalore"],
+  price: ["0-50L", "50L-1Cr", "1Cr+"],
+  type: ["Apartment", "House", "Condo", "Villa", "Townhouse"],
+  bedrooms: ["1", "2", "3", "4", "5+"],
+  mobileQuickTypes: ["Apartment", "Villa", "House"]
+};
 export class PropertyController {
   /**
    * Create a new property
@@ -14,7 +21,7 @@ export class PropertyController {
   async createProperty(req: Request, res: Response): Promise<void> {
     try {
       const createPropertyDto: CreatePropertyDto = req.body;
-      
+
       // Handle file uploads (multer should be configured)
       const files = req.files as Express.Multer.File[];
       const imageBuffers = files?.map((file) => file.buffer) || [];
@@ -40,29 +47,91 @@ export class PropertyController {
   /**
    * Get all properties
    */
+  /**
+  * Get all properties with filters
+  */
   async getProperties(req: Request, res: Response): Promise<void> {
     try {
+      // Extract filter parameters from query
+      const {
+        status,
+        type,
+        location,
+        price,
+        bedrooms,
+        search,
+        page = 1,
+        limit = 10,
+      } = req.query;
+
+      // Parse price range
+      let minPrice: string | undefined;
+      let maxPrice: string | undefined;
+
+      if (price && price !== "All") {
+        const priceMatch = (price as string).match(/(\d+[K]?)\s*-\s*(\d+[K]?)/);
+        if (priceMatch) {
+          minPrice = priceMatch[1];
+          maxPrice = priceMatch[2];
+        } else if ((price as string).includes("+")) {
+          const match = (price as string).match(/(\d+[K]?)\+/);
+          if (match) {
+            minPrice = match[1];
+          }
+        }
+      }
+
+      // Build filters object
       const filters = {
-        status: req.query.status as string,
-        type: req.query.type as string,
-        location: req.query.location as string,
-        minPrice: req.query.minPrice ? Number(req.query.minPrice) : undefined,
-        maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined,
-        search: req.query.search as string,
-        page: req.query.page ? Number(req.query.page) : 1,
-        limit: req.query.limit ? Number(req.query.limit) : 10,
+        status: status && status !== "All" ? status as string : undefined,
+        type: type && type !== "All" ? type as string : undefined,
+        location: location && location !== "All" ? location as string : undefined,
+        minPrice,
+        maxPrice,
+        bedrooms: bedrooms && bedrooms !== "All" ? bedrooms as string : undefined,
+        search: search as string,
+        page: Number(page),
+        limit: Number(limit),
       };
 
+      // Get properties with filters
       const { properties, total } = await propertyService.getProperties(filters as any);
+
+      // Get filter options for response
+
+      const filterOptions = {
+        status: FILTER_OPTIONS.status,
+        location: FILTER_OPTIONS.location,
+        price: FILTER_OPTIONS.price,
+        type: FILTER_OPTIONS.type,
+        bedrooms: FILTER_OPTIONS.bedrooms,
+        mobileQuickTypes: FILTER_OPTIONS.mobileQuickTypes,
+      };
+
+      // Get active filters
+      const activeFilters = {
+        status: status || "All",
+        type: type || "All",
+        location: location || "All",
+        price: price || "All",
+        bedrooms: bedrooms || "All",
+        search: search || "",
+      };
 
       res.status(200).json({
         success: true,
         data: PropertyResponseDto.fromDocuments(properties),
+        filters: {
+          options: filterOptions,
+          active: activeFilters,
+        },
         pagination: {
           total,
           page: filters.page,
           limit: filters.limit,
           totalPages: Math.ceil(total / (filters.limit || 10)),
+          hasNext: filters.page < Math.ceil(total / (filters.limit || 10)),
+          hasPrev: filters.page > 1,
         },
       });
     } catch (error: any) {
@@ -173,7 +242,7 @@ export class PropertyController {
   async deleteProperty(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const property = await propertyService.deleteProperty(id as string );
+      const property = await propertyService.deleteProperty(id as string);
 
       if (!property) {
         res.status(404).json({

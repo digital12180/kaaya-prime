@@ -47,12 +47,16 @@ export class PropertyService {
     /**
      * Get all properties with filters
      */
+    /**
+  * Get all properties with filters
+  */
     async getProperties(filters: {
         status?: string;
         type?: string;
         location?: string;
         minPrice?: string;
         maxPrice?: string;
+        bedrooms?: string;
         search?: string;
         page?: number;
         limit?: number;
@@ -64,6 +68,7 @@ export class PropertyService {
                 location,
                 minPrice,
                 maxPrice,
+                bedrooms,
                 search,
                 page = 1,
                 limit = 10,
@@ -71,20 +76,41 @@ export class PropertyService {
 
             const query: any = {};
 
+            // Apply filters
             if (status) query.status = status;
             if (type) query.type = type;
             if (location) query.location = { $regex: location, $options: "i" };
 
-            // Price filter (since price is stored as string, we need to convert for numeric comparison)
+            // Price filter (convert string prices to numbers for comparison)
             if (minPrice || maxPrice) {
                 query.price = {};
-                // Remove currency symbols and convert to number
+
                 const parsePrice = (priceStr: string) => {
-                    return parseFloat(priceStr.replace(/[^0-9.]/g, ''));
+                    const cleaned = priceStr.replace(/[^0-9.]/g, '');
+                    return parseFloat(cleaned);
                 };
-                
-                if (minPrice) query.price.$gte = parsePrice(minPrice);
-                if (maxPrice) query.price.$lte = parsePrice(maxPrice);
+
+                if (minPrice) {
+                    const min = parsePrice(minPrice);
+                    if (!isNaN(min)) query.price.$gte = min;
+                }
+                if (maxPrice) {
+                    const max = parsePrice(maxPrice);
+                    if (!isNaN(max)) query.price.$lte = max;
+                }
+            }
+
+            // Bedrooms filter
+            if (bedrooms) {
+                if (bedrooms === "4+") {
+                    // For 4+ bedrooms, find properties with 4 or more bedrooms
+                    query["specs.value"] = { $gte: "4" };
+                } else {
+                    // For specific bedroom count
+                    query["specs.value"] = bedrooms;
+                }
+                // Add condition to only match bedroom specs
+                query["specs.label"] = "Bedrooms";
             }
 
             // Text search
