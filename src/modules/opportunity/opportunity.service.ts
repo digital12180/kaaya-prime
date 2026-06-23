@@ -15,13 +15,13 @@ export class PropertyService {
         imageBuffers?: Buffer[]
     ): Promise<IProperty> {
         try {
-            // Upload images to Cloudinary if provided
-            let imageUrls: string[] = [];
+            // Upload additional images to Cloudinary if provided
+            let additionalImages: string[] = [];
             if (imageBuffers && imageBuffers.length > 0) {
                 const uploadPromises = imageBuffers.map((buffer, index) =>
                     uploadToCloudinary(buffer, "image", `property-${Date.now()}-${index}`)
                 );
-                imageUrls = await Promise.all(uploadPromises);
+                additionalImages = await Promise.all(uploadPromises);
             }
 
             // Generate slug from title
@@ -34,7 +34,7 @@ export class PropertyService {
             const propertyData = {
                 ...createPropertyDto,
                 slug,
-                images: imageUrls,
+                images: [createPropertyDto.imageUrl, ...additionalImages], // Include main image + additional
             };
 
             const property = new Property(propertyData);
@@ -51,8 +51,8 @@ export class PropertyService {
         status?: string;
         type?: string;
         location?: string;
-        minPrice?: number;
-        maxPrice?: number;
+        minPrice?: string;
+        maxPrice?: string;
         search?: string;
         page?: number;
         limit?: number;
@@ -75,11 +75,16 @@ export class PropertyService {
             if (type) query.type = type;
             if (location) query.location = { $regex: location, $options: "i" };
 
-            // Price filter
-            if (minPrice !== undefined || maxPrice !== undefined) {
+            // Price filter (since price is stored as string, we need to convert for numeric comparison)
+            if (minPrice || maxPrice) {
                 query.price = {};
-                if (minPrice !== undefined) query.price.$gte = minPrice;
-                if (maxPrice !== undefined) query.price.$lte = maxPrice;
+                // Remove currency symbols and convert to number
+                const parsePrice = (priceStr: string) => {
+                    return parseFloat(priceStr.replace(/[^0-9.]/g, ''));
+                };
+                
+                if (minPrice) query.price.$gte = parsePrice(minPrice);
+                if (maxPrice) query.price.$lte = parsePrice(maxPrice);
             }
 
             // Text search
@@ -147,13 +152,13 @@ export class PropertyService {
             }
 
             // Upload new images if provided
-            let imageUrls = property.images || [];
+            let updatedImages = property.images || [];
             if (imageBuffers && imageBuffers.length > 0) {
                 const uploadPromises = imageBuffers.map((buffer, index) =>
                     uploadToCloudinary(buffer, "image", `property-${Date.now()}-${index}`)
                 );
                 const newImages = await Promise.all(uploadPromises);
-                imageUrls = [...imageUrls, ...newImages];
+                updatedImages = [...updatedImages, ...newImages];
             }
 
             // Update slug if title changed
@@ -166,7 +171,12 @@ export class PropertyService {
                 });
             }
 
-            updateData.images = imageUrls;
+            // If imageUrl is being updated, add it to images array
+            if (updatePropertyDto.imageUrl && !updatedImages.includes(updatePropertyDto.imageUrl)) {
+                updatedImages = [updatePropertyDto.imageUrl, ...updatedImages];
+            }
+
+            updateData.images = updatedImages;
 
             return await Property.findByIdAndUpdate(
                 id,
@@ -211,9 +221,17 @@ export class PropertyService {
                 (img) => !imageUrlsToRemove.includes(img)
             );
 
+            // If the main imageUrl is being removed, update it to the first remaining image
+            let updateData: any = { images: updatedImages };
+            if (imageUrlsToRemove.includes(property.imageUrl) && updatedImages.length > 0) {
+                updateData.imageUrl = updatedImages[0];
+            } else if (imageUrlsToRemove.includes(property.imageUrl) && updatedImages.length === 0) {
+                updateData.imageUrl = "";
+            }
+
             return await Property.findByIdAndUpdate(
                 id,
-                { $set: { images: updatedImages } },
+                { $set: updateData },
                 { new: true }
             );
         } catch (error) {
