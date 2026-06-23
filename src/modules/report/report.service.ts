@@ -9,7 +9,7 @@ import type {
     IPaginationDto
 } from "./report.dto.js";
 import { uploadToCloudinary } from "../../config/cloudinary.js";
-import { generateSlug } from "../area/area.dto.js";
+import { generateSlug } from "../../common/utils/generate.js";
 import cloudinary from "../../config/cloudinary.js";
 
 export class ReportService {

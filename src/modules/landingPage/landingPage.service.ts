@@ -1,7 +1,7 @@
 // services/landingPage.service.ts
 import mongoose from "mongoose";
 import { LandingPage } from "./landingPage.model.js";
-import { Opportunity } from "../opportunity/opportunity.model.js";
+import { Property } from "../opportunity/property.model.js";
 import type {
     ICreateLandingPageDto,
     IUpdateLandingPageDto,
@@ -28,7 +28,7 @@ export class LandingPageService {
             }
             console.log(createDto.opportunity);
 
-            const opportunity = await Opportunity.findById(createDto.opportunity);
+            const opportunity = await Property.findById(createDto.opportunity);
             if (!opportunity) {
                 throw new Error("Opportunity Not Found");
             }
@@ -49,7 +49,7 @@ export class LandingPageService {
 
             const landingPage = new LandingPage(landingPageData);
             await landingPage.save();
-            opportunity.landingPage.push(landingPage._id);
+            // opportunity.landingPage.push(landingPage._id);
             await opportunity.save();
             return landingPage;
         } catch (error: any) {
@@ -272,20 +272,20 @@ export class LandingPageService {
         if (opportunity && String(opportunity) !== String(existingPage.opportunity)) {
 
             // 1. Check new opportunity exists
-            const newOpportunity = await Opportunity.findById(opportunity);
+            const newOpportunity = await Property.findById(opportunity);
             if (!newOpportunity) {
                 throw new Error("Opportunity Not Found");
             }
 
             // 2. Remove from OLD opportunity
             if (existingPage.opportunity) {
-                await Opportunity.findByIdAndUpdate(existingPage.opportunity, {
+                await Property.findByIdAndUpdate(existingPage.opportunity, {
                     $pull: { landingPage: existingPage._id },
                 });
             }
 
             // 3. Add to NEW opportunity (NO overwrite, NO duplicate)
-            await Opportunity.findByIdAndUpdate(opportunity, {
+            await Property.findByIdAndUpdate(opportunity, {
                 $addToSet: { landingPage: existingPage._id },
             });
 
