@@ -1,237 +1,236 @@
-// controllers/opportunity.controller.ts
 import type { Request, Response } from "express";
-import { OpportunityService } from "./opportunity.service.js";
-import type {
-    validateCreateOpportunity,
-    validateUpdateOpportunity,
-    ICreateOpportunityDto,
-    IUpdateOpportunityDto,
-    OpportunityResponseDto,
-    IPaginationDto
-} from "./opportunity.dto.js";
+import { PropertyService } from "./opportunity.service.js";
+import { CreatePropertyDto } from "./opportunity.dto.js";
+import { UpdatePropertyDto } from "./opportunity.dto.js";
+import { PropertyResponseDto } from "./opportunity.dto.js";
 
-export class OpportunityController {
-    private opportunityService: OpportunityService;
 
-    constructor() {
-        this.opportunityService = new OpportunityService();
+const propertyService = new PropertyService();
+
+export class PropertyController {
+  /**
+   * Create a new property
+   */
+  async createProperty(req: Request, res: Response): Promise<void> {
+    try {
+      const createPropertyDto: CreatePropertyDto = req.body;
+      
+      // Handle file uploads (multer should be configured)
+      const files = req.files as Express.Multer.File[];
+      const imageBuffers = files?.map((file) => file.buffer) || [];
+
+      const property = await propertyService.createProperty(
+        createPropertyDto,
+        imageBuffers
+      );
+
+      res.status(201).json({
+        success: true,
+        message: "Property created successfully",
+        data: PropertyResponseDto.fromDocument(property),
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to create property",
+      });
     }
+  }
 
-    // Create opportunity
-    createOpportunity = async (req: Request, res: Response): Promise<void> => {
-        try {
-            const files = req.files as Express.Multer.File[]; // ✅ proper casting
+  /**
+   * Get all properties
+   */
+  async getProperties(req: Request, res: Response): Promise<void> {
+    try {
+      const filters = {
+        status: req.query.status as string,
+        type: req.query.type as string,
+        location: req.query.location as string,
+        minPrice: req.query.minPrice ? Number(req.query.minPrice) : undefined,
+        maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined,
+        search: req.query.search as string,
+        page: req.query.page ? Number(req.query.page) : 1,
+        limit: req.query.limit ? Number(req.query.limit) : 10,
+      };
 
-            const opportunity = await this.opportunityService.createOpportunity(
-                req.body,
-                files
-            );
+      const { properties, total } = await propertyService.getProperties(filters as any);
 
-            res.status(201).json({
-                success: true,
-                message: "Opportunity created successfully",
-                data: opportunity
-            });
-        } catch (error: any) {
-            const status = error.message?.includes("already exists") ? 409 : 400;
+      res.status(200).json({
+        success: true,
+        data: PropertyResponseDto.fromDocuments(properties),
+        pagination: {
+          total,
+          page: filters.page,
+          limit: filters.limit,
+          totalPages: Math.ceil(total / (filters.limit || 10)),
+        },
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to fetch properties",
+      });
+    }
+  }
 
-            res.status(status).json({
-                success: false,
-                message: error.message || "Failed to create opportunity",
-                error: process.env.NODE_ENV === "development" ? error.stack : undefined
-            });
-        }
-    };
+  /**
+   * Get a single property by ID
+   */
+  async getPropertyById(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const property = await propertyService.getPropertyById(id as string);
 
-    // Get all opportunities with pagination
-    getAllOpportunities = async (req: Request, res: Response): Promise<void> => {
-        try {
-            const paginationDto = {
-                page: req.query.page ? parseInt(req.query.page as string) : 1,
-                limit: req.query.limit ? parseInt(req.query.limit as string) : 10,
-                search: req.query.search as string,
-                status: req.query.status as any,
-                location: req.query.location as string
-            };
+      if (!property) {
+        res.status(404).json({
+          success: false,
+          message: "Property not found",
+        });
+        return;
+      }
 
-            // Validate pagination params
-            if (paginationDto.page && (isNaN(paginationDto.page) || paginationDto.page < 1)) {
-                res.status(400).json({
-                    success: false,
-                    message: "Page must be a positive number"
-                });
-                return;
-            }
+      res.status(200).json({
+        success: true,
+        data: PropertyResponseDto.fromDocument(property),
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to fetch property",
+      });
+    }
+  }
 
-            if (paginationDto.limit && (isNaN(paginationDto.limit) || paginationDto.limit < 1 || paginationDto.limit > 100)) {
-                res.status(400).json({
-                    success: false,
-                    message: "Limit must be between 1 and 100"
-                });
-                return;
-            }
+  /**
+   * Get property by slug
+   */
+  async getPropertyBySlug(req: Request, res: Response): Promise<void> {
+    try {
+      const { slug } = req.params;
+      const property = await propertyService.getPropertyBySlug(slug as string);
 
-            const result = await this.opportunityService.getAllOpportunities(paginationDto);
-            res.status(200).json({
-                success: true,
-                message: "Opportunities retrieved successfully",
-                data: result.opportunities,
-                pagination: {
-                    page: result.page,
-                    limit: result.limit,
-                    total: result.total,
-                    totalPages: result.totalPages
-                }
-            });
-        } catch (error: any) {
-            res.status(500).json({
-                success: false,
-                message: error.message || "Failed to retrieve opportunities",
-                error: process.env.NODE_ENV === "development" ? error.stack : undefined
-            });
-        }
-    };
+      if (!property) {
+        res.status(404).json({
+          success: false,
+          message: "Property not found",
+        });
+        return;
+      }
 
-    // Get opportunity by ID
-    getOpportunityById = async (req: Request, res: Response): Promise<void> => {
-        try {
-            const { id } = req.params;
-            const opportunity = await this.opportunityService.getOpportunityById(id as string);
-            res.status(200).json({
-                success: true,
-                message: "Opportunity retrieved successfully",
-                data: opportunity
-            });
-        } catch (error: any) {
-            const status = error.message === "Invalid opportunity ID format" ? 400 : 404;
-            res.status(status).json({
-                success: false,
-                message: error.message || "Failed to retrieve opportunity",
-                error: process.env.NODE_ENV === "development" ? error.stack : undefined
-            });
-        }
-    };
+      res.status(200).json({
+        success: true,
+        data: PropertyResponseDto.fromDocument(property),
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to fetch property",
+      });
+    }
+  }
 
-    // Update opportunity
-    updateOpportunity = async (req: Request, res: Response): Promise<any> => {
-        try {
-            const { id } = req.params;
-            if (!req.body) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Request body is required"
-                });
-            }
-            const files = req.files as Express.Multer.File[];
-            const opportunity = await this.opportunityService.updateOpportunity(id as string, req.body, files);
-            return res.status(200).json({
-                success: true,
-                message: "Opportunity updated successfully",
-                data: opportunity
-            });
-        } catch (error: any) {
-            const status = error.message === "Invalid opportunity ID format" ? 400 :
-                error.message.includes("already exists") ? 409 : 404;
-            res.status(status).json({
-                success: false,
-                message: error.message || "Failed to update opportunity",
-                error: process.env.NODE_ENV === "development" ? error.stack : undefined
-            });
-        }
-    };
+  /**
+   * Update a property
+   */
+  async updateProperty(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const updatePropertyDto: UpdatePropertyDto = req.body;
 
-    // Delete opportunity
-    deleteOpportunity = async (req: Request, res: Response): Promise<void> => {
-        try {
-            const { id } = req.params;
-            const result = await this.opportunityService.deleteOpportunity(id as string);
-            res.status(200).json({
-                success: true,
-                message: result.message,
-                data: { deletedId: result.deletedId }
-            });
-        } catch (error: any) {
-            const status = error.message === "Invalid opportunity ID format" ? 400 : 404;
-            res.status(status).json({
-                success: false,
-                message: error.message || "Failed to delete opportunity",
-                error: process.env.NODE_ENV === "development" ? error.stack : undefined
-            });
-        }
-    };
+      const files = req.files as Express.Multer.File[];
+      const imageBuffers = files?.map((file) => file.buffer) || [];
 
-    // Get opportunities by status
-    getOpportunitiesByStatus = async (req: Request, res: Response): Promise<void> => {
-        try {
-            const { status } = req.params;
-            const opportunities = await this.opportunityService.getOpportunitiesByStatus(status as string);
-            res.status(200).json({
-                success: true,
-                message: `Opportunities with status '${status}' retrieved successfully`,
-                data: opportunities,
-                count: opportunities.length
-            });
-        } catch (error: any) {
-            res.status(400).json({
-                success: false,
-                message: error.message || "Failed to retrieve opportunities by status",
-                error: process.env.NODE_ENV === "development" ? error.stack : undefined
-            });
-        }
-    };
+      const property = await propertyService.updateProperty(
+        id as string,
+        updatePropertyDto,
+        imageBuffers
+      );
 
-    // Get opportunity statistics
-    getOpportunityStatistics = async (req: Request, res: Response): Promise<void> => {
-        try {
-            const statistics = await this.opportunityService.getOpportunityStatistics();
-            res.status(200).json({
-                success: true,
-                message: "Statistics retrieved successfully",
-                data: statistics
-            });
-        } catch (error: any) {
-            res.status(500).json({
-                success: false,
-                message: error.message || "Failed to retrieve statistics",
-                error: process.env.NODE_ENV === "development" ? error.stack : undefined
-            });
-        }
-    };
-    
-    searchOpportunity = async (req: Request, res: Response): Promise<void> => {
-        try {
-            const { title } = req.query;
-            const opportunities = await this.opportunityService.searchOpportunity(title as string);
-            res.status(200).json({
-                success: true,
-                message: `Opportunities with title '${title}' retrieved successfully`,
-                data: opportunities,
-                count: opportunities.length
-            });
-        } catch (error: any) {
-            res.status(400).json({
-                success: false,
-                message: error.message || "Failed to retrieve opportunities by title",
-                error: process.env.NODE_ENV === "development" ? error.stack : undefined
-            });
-        }
-    };
-    getOpportunityBySlug = async (req: Request, res: Response): Promise<void> => {
-        try {
-            const { slug } = req.params;
-            const opportunity = await this.opportunityService.getOpportunityBySlug(slug as string);
-            res.status(200).json({
-                success: true,
-                message: "Opportunity page retrieved successfully",
-                data: opportunity
-            });
-        } catch (error: any) {
-            res.status(404).json({
-                success: false,
-                message: error.message || "Failed to retrieve opportunity",
-                error: process.env.NODE_ENV === "development" ? error.stack : undefined
-            });
-        }
-    };
+      if (!property) {
+        res.status(404).json({
+          success: false,
+          message: "Property not found",
+        });
+        return;
+      }
 
+      res.status(200).json({
+        success: true,
+        message: "Property updated successfully",
+        data: PropertyResponseDto.fromDocument(property),
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to update property",
+      });
+    }
+  }
+
+  /**
+   * Delete a property
+   */
+  async deleteProperty(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const property = await propertyService.deleteProperty(id as string );
+
+      if (!property) {
+        res.status(404).json({
+          success: false,
+          message: "Property not found",
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Property deleted successfully",
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to delete property",
+      });
+    }
+  }
+
+  /**
+   * Remove images from a property
+   */
+  async removeImages(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const { imageUrls } = req.body;
+
+      if (!imageUrls || !Array.isArray(imageUrls) || imageUrls.length === 0) {
+        res.status(400).json({
+          success: false,
+          message: "Please provide image URLs to remove",
+        });
+        return;
+      }
+
+      const property = await propertyService.removeImages(id as string, imageUrls);
+
+      if (!property) {
+        res.status(404).json({
+          success: false,
+          message: "Property not found",
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Images removed successfully",
+        data: PropertyResponseDto.fromDocument(property),
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to remove images",
+      });
+    }
+  }
 }

@@ -1,293 +1,223 @@
-// services/opportunity.service.ts
-import mongoose from "mongoose";
-import { Opportunity } from "./opportunity.model.js";
-import type {
-    ICreateOpportunityDto,
-    IUpdateOpportunityDto,
-    OpportunityResponseDto,
-    IPaginationDto
-} from "./opportunity.dto.js";
-import { ApiError } from "../../common/exceptions/apiError.js";
+import { Property } from "./property.model.js";
+import type { IProperty } from "./property.model.js";
+import { CreatePropertyDto } from "./opportunity.dto.js";
+import { UpdatePropertyDto } from "./opportunity.dto.js";
 import { uploadToCloudinary } from "../../config/cloudinary.js";
-import { generateSlug } from "../area/area.dto.js";
-import cloudinary from "../../config/cloudinary.js";
-export class OpportunityService {
+import slugify from "slugify";
+import mongoose, { Types } from "mongoose";
 
-    // Create a new opportunity
-    async createOpportunity(
-        createDto: ICreateOpportunityDto,
-        files: Express.Multer.File[]
-    ): Promise<any> {
+export class PropertyService {
+    /**
+     * Create a new property
+     */
+    async createProperty(
+        createPropertyDto: CreatePropertyDto,
+        imageBuffers?: Buffer[]
+    ): Promise<IProperty> {
         try {
-            const slug = generateSlug(createDto.title);
-            // ✅ Check duplicate title (case-insensitive)
-            const existingOpportunity = await Opportunity.findOne({
-                title: { $regex: new RegExp(`^${createDto.title}$`, "i") }
+            // Upload images to Cloudinary if provided
+            let imageUrls: string[] = [];
+            if (imageBuffers && imageBuffers.length > 0) {
+                const uploadPromises = imageBuffers.map((buffer, index) =>
+                    uploadToCloudinary(buffer, "image", `property-${Date.now()}-${index}`)
+                );
+                imageUrls = await Promise.all(uploadPromises);
+            }
+
+            // Generate slug from title
+            const slug = slugify(createPropertyDto.title, {
+                lower: true,
+                strict: true,
+                trim: true,
             });
 
-            if (existingOpportunity) {
-                throw new Error("An opportunity with this title already exists");
+            const propertyData = {
+                ...createPropertyDto,
+                slug,
+                images: imageUrls,
+            };
+
+            const property = new Property(propertyData);
+            return await property.save();
+        } catch (error) {
+            throw new Error(`Error creating property: ${error}`);
+        }
+    }
+
+    /**
+     * Get all properties with filters
+     */
+    async getProperties(filters: {
+        status?: string;
+        type?: string;
+        location?: string;
+        minPrice?: number;
+        maxPrice?: number;
+        search?: string;
+        page?: number;
+        limit?: number;
+    }): Promise<{ properties: IProperty[]; total: number }> {
+        try {
+            const {
+                status,
+                type,
+                location,
+                minPrice,
+                maxPrice,
+                search,
+                page = 1,
+                limit = 10,
+            } = filters;
+
+            const query: any = {};
+
+            if (status) query.status = status;
+            if (type) query.type = type;
+            if (location) query.location = { $regex: location, $options: "i" };
+
+            // Price filter
+            if (minPrice !== undefined || maxPrice !== undefined) {
+                query.price = {};
+                if (minPrice !== undefined) query.price.$gte = minPrice;
+                if (maxPrice !== undefined) query.price.$lte = maxPrice;
             }
 
-            // ✅ Validate images properly
-            if (!files || files.length === 0) {
-                throw new Error("At least one image is required");
+            // Text search
+            if (search) {
+                query.$text = { $search: search };
             }
-            console.log("----", files);
 
+            const skip = (page - 1) * limit;
 
-            // ✅ Upload multiple images
-            const imageUrls: any = await Promise.all(
-                files.map(async (file) => {
-                    return await uploadToCloudinary(file.buffer);
-                })
+            const [properties, total] = await Promise.all([
+                Property.find(query)
+                    .sort({ createdAt: -1 })
+                    .skip(skip)
+                    .limit(limit),
+                Property.countDocuments(query),
+            ]);
+
+            return { properties, total };
+        } catch (error) {
+            throw new Error(`Error fetching properties: ${error}`);
+        }
+    }
+
+    /**
+     * Get a single property by ID
+     */
+    async getPropertyById(id: string): Promise<IProperty | null> {
+        try {
+            if (!Types.ObjectId.isValid(id)) {
+                throw new Error("Invalid property ID");
+            }
+            return await Property.findById(id);
+        } catch (error) {
+            throw new Error(`Error fetching property: ${error}`);
+        }
+    }
+
+    /**
+     * Get a single property by slug
+     */
+    async getPropertyBySlug(slug: string): Promise<IProperty | null> {
+        try {
+            return await Property.findOne({ slug });
+        } catch (error) {
+            throw new Error(`Error fetching property: ${error}`);
+        }
+    }
+
+    /**
+     * Update a property
+     */
+    async updateProperty(
+        id: string,
+        updatePropertyDto: UpdatePropertyDto,
+        imageBuffers?: Buffer[]
+    ): Promise<IProperty | null> {
+        try {
+            if (!Types.ObjectId.isValid(id)) {
+                throw new Error("Invalid property ID");
+            }
+
+            const property = await Property.findById(id);
+            if (!property) {
+                throw new Error("Property not found");
+            }
+
+            // Upload new images if provided
+            let imageUrls = property.images || [];
+            if (imageBuffers && imageBuffers.length > 0) {
+                const uploadPromises = imageBuffers.map((buffer, index) =>
+                    uploadToCloudinary(buffer, "image", `property-${Date.now()}-${index}`)
+                );
+                const newImages = await Promise.all(uploadPromises);
+                imageUrls = [...imageUrls, ...newImages];
+            }
+
+            // Update slug if title changed
+            let updateData: any = { ...updatePropertyDto };
+            if (updatePropertyDto.title) {
+                updateData.slug = slugify(updatePropertyDto.title, {
+                    lower: true,
+                    strict: true,
+                    trim: true,
+                });
+            }
+
+            updateData.images = imageUrls;
+
+            return await Property.findByIdAndUpdate(
+                id,
+                { $set: updateData },
+                { new: true, runValidators: true }
+            );
+        } catch (error) {
+            throw new Error(`Error updating property: ${error}`);
+        }
+    }
+
+    /**
+     * Delete a property
+     */
+    async deleteProperty(id: string): Promise<IProperty | null> {
+        try {
+            if (!Types.ObjectId.isValid(id)) {
+                throw new Error("Invalid property ID");
+            }
+            return await Property.findByIdAndDelete(id);
+        } catch (error) {
+            throw new Error(`Error deleting property: ${error}`);
+        }
+    }
+
+    /**
+     * Remove specific images from a property
+     */
+    async removeImages(id: string, imageUrlsToRemove: string[]): Promise<IProperty | null> {
+        try {
+            if (!Types.ObjectId.isValid(id)) {
+                throw new Error("Invalid property ID");
+            }
+
+            const property = await Property.findById(id);
+            if (!property) {
+                throw new Error("Property not found");
+            }
+
+            // Filter out images to remove
+            const updatedImages = property.images.filter(
+                (img) => !imageUrlsToRemove.includes(img)
             );
 
-            // ✅ Assign images
-            createDto.images = imageUrls;
-            createDto.slug = slug;
-
-            // ✅ Save opportunity
-            const opportunity = new Opportunity(createDto);
-            await opportunity.save();
-
-            return opportunity;
-
-        } catch (error: any) {
-            if (error.code === 11000) {
-                throw new Error("Duplicate opportunity detected");
-            }
-            throw error;
-        }
-    }
-
-    // Get all opportunities with pagination and filters
-    async getAllOpportunities(paginationDto: IPaginationDto): Promise<{
-        opportunities: any;
-        total: number;
-        page: number;
-        limit: number;
-        totalPages: number;
-    }> {
-        const page = Math.max(1, paginationDto.page || 1);
-        const limit = Math.min(100, Math.max(1, paginationDto.limit || 10));
-        const skip = (page - 1) * limit;
-
-        let query: any = {};
-
-        // Search functionality (text search)
-        if (paginationDto.search && paginationDto.search.trim()) {
-            query.$text = { $search: paginationDto.search };
-        }
-
-        // Filter by status
-        if (paginationDto.status) {
-            query.status = paginationDto.status;
-        }
-
-        // Filter by location (case-insensitive partial match)
-        if (paginationDto.location && paginationDto.location.trim()) {
-            query.location = { $regex: paginationDto.location, $options: 'i' };
-        }
-
-        const [opportunities, total] = await Promise.all([
-            Opportunity.find(query)
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(limit)
-                .lean(),
-            Opportunity.countDocuments(query)
-        ]);
-
-        const totalPages = Math.ceil(total / limit);
-
-        return {
-            opportunities: opportunities,
-            total,
-            page,
-            limit,
-            totalPages
-        };
-    }
-
-    // Get opportunity by ID
-    async getOpportunityById(id: string): Promise<any | Response> {
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            throw new Error("Invalid opportunity ID format");
-        }
-
-        const opportunity = await Opportunity.findById(id).lean();
-        if (!opportunity) {
-            throw new Error("Opportunity not found");
-        }
-
-        return opportunity;
-    }
-
-    // Update opportunity
-    async updateOpportunity(id: string, updateDto: IUpdateOpportunityDto, files?: Express.Multer.File[]): Promise<any> {
-        if (!updateDto) {
-            throw new Error("Update data is required");
-        }
-
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            throw new Error("Invalid opportunity ID format");
-        }
-        const opportunity = await Opportunity.findById(id);
-        if (!opportunity) {
-            throw new Error("Opportunity not found");
-        }
-        if (updateDto.title) {
-            const existingOpportunity = await Opportunity.findOne({
-                _id: { $ne: id },
-                title: { $regex: new RegExp(`^${updateDto.title}$`, 'i') }
-            });
-
-            if (existingOpportunity) {
-                throw new Error("Another opportunity with this title already exists");
-            }
-        }
-        console.log("delete-----------", updateDto.deleteImages);
-
-        let finalImages = [...opportunity.images];
-
-        if (updateDto?.deleteImages) {
-            let deleteImages = updateDto.deleteImages;
-
-            if (!Array.isArray(deleteImages)) {
-                deleteImages = [deleteImages];
-            }
-            // handle string case (form-data)
-            // if (typeof deleteImages === "string") {
-            //     deleteImages = JSON.parse(deleteImages);
-            // }
-
-            if (Array.isArray(deleteImages)) {
-                for (const img of deleteImages) {
-
-                    finalImages = finalImages.filter(i => i !== img);
-
-                    const parts = img.split("/");
-                    const publicId = parts.slice(-2).join("/").split(".")[0];
-                    let result;
-                    if (publicId) {
-                        result = await cloudinary.uploader.destroy(publicId)
-                    }
-                    console.log("DELETE RESULT:", result);
-                }
-            }
-        }
-
-        if (files && files.length > 0) {
-            const newImages = await Promise.all(
-                files.map(file => uploadToCloudinary(file.buffer))
+            return await Property.findByIdAndUpdate(
+                id,
+                { $set: { images: updatedImages } },
+                { new: true }
             );
-
-            finalImages.push(...newImages);
+        } catch (error) {
+            throw new Error(`Error removing images: ${error}`);
         }
-        updateDto.images = finalImages;
-
-        const updated = await Opportunity.findByIdAndUpdate(
-            id,
-            { ...updateDto, updatedAt: new Date() },
-            { new: true, runValidators: true }
-        ).lean();
-
-        if (!updated) {
-            throw new Error("Opportunity not found");
-        }
-
-        return updated;
     }
-
-    // Delete opportunity
-    async deleteOpportunity(id: string): Promise<{ message: string; deletedId: string }> {
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            throw new Error("Invalid opportunity ID format");
-        }
-
-        const opportunity = await Opportunity.findByIdAndDelete(id);
-        if (!opportunity) {
-            throw new Error("Opportunity not found");
-        }
-
-        return {
-            message: "Opportunity deleted successfully",
-            deletedId: id
-        };
-    }
-
-    // Get opportunities by status
-    async getOpportunitiesByStatus(status: string): Promise<Response | any> {
-        const validStatuses = ["ACTIVE", "UPCOMING", "SOLD OUT", "UNDER REVIEW"];
-
-        if (!validStatuses.includes(status)) {
-            throw new Error(`Invalid status. Must be one of: ${validStatuses.join(", ")}`);
-        }
-
-        const opportunities = await Opportunity.find({ status })
-            .sort({ createdAt: -1 })
-            .lean();
-
-        return opportunities;
-    }
-
-    // Get opportunities statistics
-    async getOpportunityStatistics(): Promise<any> {
-        const [totalOpportunities, statusStats, locationStats] = await Promise.all([
-            Opportunity.countDocuments(),
-            Opportunity.aggregate([
-                {
-                    $group: {
-                        _id: "$status",
-                        count: { $sum: 1 }
-                    }
-                }
-            ]),
-            Opportunity.aggregate([
-                {
-                    $group: {
-                        _id: "$location",
-                        count: { $sum: 1 }
-                    }
-                },
-                { $sort: { count: -1 } },
-                { $limit: 10 }
-            ])
-        ]);
-
-        return {
-            totalOpportunities,
-            statusDistribution: statusStats,
-            topLocations: locationStats
-        };
-    }
-
-    async searchOpportunity(title: string): Promise<Response | any> {
-        if (!title) {
-            throw new ApiError(400, "empty data to search")
-        }
-        const result = await Opportunity.find({
-            title: { $regex: title, $options: 'i' }
-        });
-
-        if (!result) {
-            throw new ApiError(400, "searched data not found")
-        }
-
-        return result;
-    }
-    async getOpportunityBySlug(slug: string): Promise<Response | any> {
-        if (!slug || typeof slug !== 'string') {
-            throw new Error("Invalid slug format");
-        }
-
-        const opportunity = await Opportunity.findOne({ slug: slug }).populate('landingPage').populate('area').lean();
-        if (!opportunity) {
-            throw new Error("opportunity not found or not published");
-        }
-
-        return opportunity;
-    }
-
 }
