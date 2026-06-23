@@ -3,49 +3,69 @@ import type { IProperty } from "./property.model.js";
 export interface CreatePropertyDto {
   title: string;
   price: string;
-  location: string;
-  bedrooms: string;
-  sqft: string;
-  bathrooms: number;
   status: "For Rent" | "For Buy";
   type: "Apartment" | "House" | "Condo" | "Villa" | "Townhouse";
-  images?: string[];
+  location: string;
+  description: string;
+  imageUrl: string;
+  specs: {
+    label: string;
+    value: string;
+  }[];
+  amenities: string[];
+  floorPlanUrl: string;
+  videoUrl?: string;
 }
 
 export class CreatePropertyDto implements CreatePropertyDto {
   title!: string;
   price!: string;
-  location!: string;
-  bedrooms!: string;
-  sqft!: string;
-  bathrooms!: number;
   status!: "For Rent" | "For Buy";
   type!: "Apartment" | "House" | "Condo" | "Villa" | "Townhouse";
-  images?: string[];
+  location!: string;
+  description!: string;
+  imageUrl!: string;
+  specs!: {
+    label: string;
+    value: string;
+  }[];
+  amenities!: string[];
+  floorPlanUrl!: string;
+  videoUrl?: string;
 }
 
 export interface UpdatePropertyDto {
   title?: string;
   price?: string;
-  location?: string;
-  bedrooms?: string;
-  sqft?: string;
-  bathrooms?: number;
   status?: "For Rent" | "For Buy";
   type?: "Apartment" | "House" | "Condo" | "Villa" | "Townhouse";
-  images?: string[];
+  location?: string;
+  description?: string;
+  imageUrl?: string;
+  specs?: {
+    label: string;
+    value: string;
+  }[];
+  amenities?: string[];
+  floorPlanUrl?: string;
+  videoUrl?: string;
 }
 
 export class UpdatePropertyDto implements UpdatePropertyDto {
   title?: string;
   price?: string;
-  location?: string;
-  bedrooms?: string;
-  sqft?: string;
-  bathrooms?: number;
   status?: "For Rent" | "For Buy";
   type?: "Apartment" | "House" | "Condo" | "Villa" | "Townhouse";
-  images?: string[];
+  location?: string;
+  description?: string;
+  imageUrl?: string;
+  specs?: {
+    label: string;
+    value: string;
+  }[];
+  amenities?: string[];
+  floorPlanUrl?: string;
+  videoUrl?: string;
 }
 
 export class PropertyResponseDto {
@@ -53,30 +73,37 @@ export class PropertyResponseDto {
   title: string;
   slug: string;
   price: string;
-  location: string;
-  images: string[];
-  bedrooms: string;
-  sqft: string;
-  bathrooms: number;
   status: string;
   type: string;
-  createdAt: Date;
-  updatedAt: Date;
+  location: string;
+  description: string;
+  imageUrl: string;
+  images: string[];
+  specs: {
+    label: string;
+    value: string;
+  }[];
+  amenities: string[];
+  floorPlanUrl: string;
+  videoUrl?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 
   constructor(property: IProperty) {
     this.id = property._id.toString();
     this.title = property.title;
     this.slug = property.slug;
     this.price = property.price;
-    this.location = property.location;
-    this.images = property.images || [];
-    this.bedrooms = property.bedrooms;
-    this.sqft = property.sqft;
-    this.bathrooms = property.bathrooms;
     this.status = property.status;
     this.type = property.type;
-    this.createdAt = property.createdAt;
-    this.updatedAt = property.updatedAt;
+    this.location = property.location;
+    this.description = property.description;
+    this.imageUrl = property.imageUrl;
+    this.images = property.images || [];
+    this.specs = property.specs || [];
+    this.amenities = property.amenities || [];
+    this.floorPlanUrl = property.floorPlanUrl;
+    this.videoUrl = property.videoUrl as string;
   }
 
   static fromDocument(property: IProperty): PropertyResponseDto {

@@ -4,81 +4,133 @@ export interface IProperty extends Document {
   title: string;
   slug: string;
   price: string;
-  location: string;
-  images: string[];
-  bedrooms: string;
-  sqft: string;
-  bathrooms: number;
   status: "For Rent" | "For Buy";
   type: "Apartment" | "House" | "Condo" | "Villa" | "Townhouse";
-  createdAt: Date;
-  updatedAt: Date;
+  location: string;
+  description: string;
+  imageUrl: string;
+  images: string[];
+  specs: {
+    label: string;
+    value: string;
+  }[];
+  amenities: string[];
+  floorPlanUrl: string;
+  videoUrl?: string;
 }
 
-const PropertySchema: Schema<IProperty> = new Schema(
+const PropertySchema = new Schema<IProperty>(
   {
     title: {
       type: String,
       required: true,
       trim: true,
-      index: true, // 🔥 search optimization
+      index: true,
     },
+
     slug: {
       type: String,
       trim: true,
+      unique: true,
+      index: true,
     },
+
     price: {
       type: String,
       required: true,
     },
+
+    status: {
+      type: String,
+      enum: ["For Rent", "For Buy"],
+      required: true,
+      default: "For Rent",
+    },
+
+    type: {
+      type: String,
+      enum: ["Apartment", "House", "Condo", "Villa", "Townhouse"],
+      required: true,
+    },
+
     location: {
       type: String,
       required: true,
       trim: true,
-      index: true, // 🔥 filter by city/location
+      index: true,
     },
-    bedrooms: {
+
+    description: {
       type: String,
       required: true,
       trim: true,
     },
-    sqft: {
+
+    imageUrl: {
       type: String,
       required: true,
       trim: true,
     },
-    bathrooms: {
-      type: Number,
-      required: true,
-    },
-    images:
-      [{
+
+    images: [
+      {
         type: String,
-        trim: true
-      }],
-    status: {
+        trim: true,
+      },
+    ],
+
+    specs: [
+      {
+        label: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        value: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+      },
+    ],
+
+    amenities: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+
+    floorPlanUrl: {
       type: String,
-      enum: ["For Rent", "For Buy"],
-      default: "For Rent"
+      required: true,
+      trim: true,
     },
-    type: {
+
+    videoUrl: {
       type: String,
-      enum: ["Apartment", "House", "Condo", "Villa", "Townhouse"],
-    }
+      trim: true,
+    },
   },
   {
-    timestamps: true, // createdAt + updatedAt
+    timestamps: true,
   }
 );
 
-// 🔥 TEXT INDEX (for search)
+// Search Index
 PropertySchema.index({
   title: "text",
   location: "text",
+  description: "text",
 });
 
-// 🔥 COMPOUND INDEX (for listing + filters)
-PropertySchema.index({ status: 1, location: 1, createdAt: -1 });
+// Filter Index
+PropertySchema.index({
+  status: 1,
+  type: 1,
+  location: 1,
+  createdAt: -1,
+});
 
 export const Property = mongoose.model<IProperty>(
   "Property",
