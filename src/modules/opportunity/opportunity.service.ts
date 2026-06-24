@@ -13,16 +13,28 @@ export class PropertyService {
     async createProperty(
         createPropertyDto: CreatePropertyDto,
         mainImage?: Buffer | null,
-        galleryImages?: Buffer[]
+        galleryImages?: Buffer[],
+        floorImage?: Buffer | null
     ): Promise<IProperty> {
 
         try {
 
             let imageUrl = "";
+            let floorPlanUrl = "";
 
             let images: string[] = [];
 
             // Main Image Upload
+
+            if (floorImage) {
+
+                floorPlanUrl =
+                    await uploadToCloudinary(
+                        floorImage,
+                        "image",
+                        `property-main-${Date.now()}`
+                    );
+            }
 
             if (mainImage) {
 
@@ -33,6 +45,7 @@ export class PropertyService {
                         `property-main-${Date.now()}`
                     );
             }
+
 
             // Gallery Images Upload
 
@@ -88,11 +101,10 @@ export class PropertyService {
                 amenities:
                     createPropertyDto.amenities,
 
-                floorPlanUrl:
-                    createPropertyDto.floorPlanUrl,
+                floorPlanUrl,
 
                 videoUrl:
-                    createPropertyDto.videoUrl
+                    createPropertyDto.videoUrl ?? ""
             });
 
             return await property.save();
