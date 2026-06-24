@@ -10,26 +10,11 @@ export class LeadService {
     // Create a new lead
     async createLead(createLeadDto: CreateLeadDto): Promise<LeadResponseDto | Response | any> {
         try {
-            // const user = await User.findById(id);
-            // if (!user) {
-            //     throw new Error("User not found");
-            // }
-            // Check if lead already exists with same email or phone
-            // const existingLead = await Lead.findOne({
-            //     $or: [
-            //         { email: createLeadDto.email.toLowerCase() },
-            //         { phone: createLeadDto.phone }
-            //     ]
-            // });
-
-            // if (existingLead) {
-            //     throw new Error("Lead with this email or phone already exists");
-            // }
-
+            
             const lead = new Lead(createLeadDto);
             await lead.save();
             
-            await emailService.sendLeadCreatedEmail(createLeadDto.email.toLowerCase(),createLeadDto.name);
+            // await emailService.sendLeadCreatedEmail(createLeadDto.email.toLowerCase(),createLeadDto.name);
             return lead;
         } catch (error: any) {
             console.log(error.message);

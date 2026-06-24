@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { PropertyController } from "./opportunity.controller.js";
-import { validateProperty } from "./opportunity.validation.js";
 import { upload } from "../../common/middleware/multer.middleware.js";
 
 const router = Router();
@@ -13,23 +12,28 @@ router.get("/slug/:slug", propertyController.getPropertyBySlug.bind(propertyCont
 
 // Protected routes (add authentication middleware as needed)
 router.post(
-  "/",
-  upload.array("images", 10), // Max 10 images
-  validateProperty,
-  propertyController.createProperty.bind(propertyController)
+    "/",
+    upload.fields([
+        { name: "imageUrl", maxCount: 1 },
+        { name: "images", maxCount: 10 }
+    ]),
+    propertyController.createProperty.bind(propertyController)
 );
 
 router.put(
-  "/:id",
-  upload.array("images", 10),
-  propertyController.updateProperty.bind(propertyController)
+    "/:id",
+    upload.fields([
+        { name: "imageUrl", maxCount: 1 },
+        { name: "images", maxCount: 10 }
+    ]),
+    propertyController.updateProperty.bind(propertyController)
 );
 
 router.delete("/:id", propertyController.deleteProperty.bind(propertyController));
 
 router.patch(
-  "/:id/images",
-  propertyController.removeImages.bind(propertyController)
+    "/:id/images",
+    propertyController.removeImages.bind(propertyController)
 );
 
 export default router;

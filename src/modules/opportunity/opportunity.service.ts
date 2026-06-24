@@ -12,35 +12,96 @@ export class PropertyService {
      */
     async createProperty(
         createPropertyDto: CreatePropertyDto,
-        imageBuffers?: Buffer[]
+        mainImage?: Buffer | null,
+        galleryImages?: Buffer[]
     ): Promise<IProperty> {
+
         try {
-            // Upload additional images to Cloudinary if provided
-            let additionalImages: string[] = [];
-            if (imageBuffers && imageBuffers.length > 0) {
-                const uploadPromises = imageBuffers.map((buffer, index) =>
-                    uploadToCloudinary(buffer, "image", `property-${Date.now()}-${index}`)
-                );
-                additionalImages = await Promise.all(uploadPromises);
+
+            let imageUrl = "";
+
+            let images: string[] = [];
+
+            // Main Image Upload
+
+            if (mainImage) {
+
+                imageUrl =
+                    await uploadToCloudinary(
+                        mainImage,
+                        "image",
+                        `property-main-${Date.now()}`
+                    );
             }
 
-            // Generate slug from title
-            const slug = slugify(createPropertyDto.title, {
-                lower: true,
-                strict: true,
-                trim: true,
+            // Gallery Images Upload
+
+            if (
+                galleryImages &&
+                galleryImages.length > 0
+            ) {
+
+                images = await Promise.all(
+                    galleryImages.map(
+                        (buffer, index) =>
+                            uploadToCloudinary(
+                                buffer,
+                                "image",
+                                `property-gallery-${Date.now()}-${index}`
+                            )
+                    )
+                );
+            }
+
+            const slug = slugify(
+                createPropertyDto.title,
+                {
+                    lower: true,
+                    strict: true,
+                    trim: true
+                }
+            );
+
+            const property = new Property({
+                title: createPropertyDto.title,
+
+                slug,
+
+                price: createPropertyDto.price,
+
+                status: createPropertyDto.status,
+
+                type: createPropertyDto.type,
+
+                location: createPropertyDto.location,
+
+                description:
+                    createPropertyDto.description,
+
+                imageUrl,
+
+                images,
+
+                specs:
+                    createPropertyDto.specs,
+
+                amenities:
+                    createPropertyDto.amenities,
+
+                floorPlanUrl:
+                    createPropertyDto.floorPlanUrl,
+
+                videoUrl:
+                    createPropertyDto.videoUrl
             });
 
-            const propertyData = {
-                ...createPropertyDto,
-                slug,
-                images: [createPropertyDto.imageUrl, ...additionalImages], // Include main image + additional
-            };
-
-            const property = new Property(propertyData);
             return await property.save();
+
         } catch (error) {
-            throw new Error(`Error creating property: ${error}`);
+
+            throw new Error(
+                `Error creating property: ${error}`
+            );
         }
     }
 

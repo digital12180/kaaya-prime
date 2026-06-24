@@ -3,10 +3,15 @@ import mongoose, { Document, Schema } from "mongoose";
 export interface IReport extends Document {
   title: string;
   slug: string;
+  region: string;
+  growth: string;
   description: string;
+  period: string;
+  fileSize: string;
+  fileType: string;
+  imageUrl: string;
   fileUrl: string;
-  image: string;
-  status: "PUBLISHED" | "DRAFT" | "ARCHIVED";
+  type: "marketinsights" | "annualreport";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,35 +24,82 @@ const ReportSchema: Schema<IReport> = new Schema(
       trim: true,
       index: true,
     },
+
     slug: {
       type: String,
-      unique: true,
       required: true,
+      unique: true,
+      trim: true,
       index: true,
     },
+
+    region: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    growth: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
     description: {
       type: String,
       required: true,
+      trim: true,
     },
+
+    period: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    fileSize: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    fileType: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
     fileUrl: {
       type: String,
       required: true,
+      trim: true,
     },
-    image: {
+
+    imageUrl: {
       type: String,
-      default: "",
+      required: true,
     },
-    status: {
+
+    type: {
       type: String,
-      enum: ["PUBLISHED", "DRAFT", "ARCHIVED"],
-      default: "DRAFT",
+      enum: ["marketinsights", "annualreport"],
+      required: true,
       index: true,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-// 🔥 search index
-ReportSchema.index({ title: "text", description: "text" });
+// Search Index
+ReportSchema.index({
+  title: "text",
+  description: "text",
+  region: "text",
+});
 
-export const Report = mongoose.model<IReport>("Report", ReportSchema);
+export const Report = mongoose.model<IReport>(
+  "Report",
+  ReportSchema
+);
