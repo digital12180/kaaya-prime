@@ -15,33 +15,8 @@ export class LeadController {
     // Create lead
     createLead = async (req: Request, res: Response): Promise<void> => {
         try {
-            // const id = req.user.userId || req.user._id
-            // if (!id) {
-            //     res.status(400).json({
-            //         success: false,
-            //         error: "Unauthorized User",
-            //     });
-            // }
 
             const createLeadDto: CreateLeadDto = req.body;
-            // Object.assign(createLeadDto, req.body);
-
-            // Validate DTO
-            // const errors = await validate(createLeadDto);
-
-            // console.log("errroo--",errors);
-
-            // if (errors.length > 0) {
-            //     res.status(400).json({
-            //         success: false,
-            //         message: "Validation failed",
-            //         errors: errors.map(err => ({
-            //             property: err.property,
-            //             constraints: err.constraints
-            //         }))
-            //     });
-            //     return;
-            // }
 
             const lead = await this.leadService.createLead(createLeadDto);
             res.status(201).json({

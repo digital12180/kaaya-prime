@@ -3,18 +3,33 @@ import type { IProperty } from "./property.model.js";
 export interface CreatePropertyDto {
   title: string;
   price: string;
+
   status: "For Rent" | "For Buy";
-  type: "Apartment" | "House" | "Condo" | "Villa" | "Townhouse";
+
+  type:
+  | "Apartment"
+  | "House"
+  | "Condo"
+  | "Villa"
+  | "Townhouse";
+
   location: string;
+
   description: string;
-  imageUrl: string;
+
   specs: {
     label: string;
     value: string;
   }[];
+
   amenities: string[];
+
   floorPlanUrl: string;
+
   videoUrl?: string;
+
+  imageUrl?: string;
+  images?: string[];
 }
 
 export class CreatePropertyDto implements CreatePropertyDto {
@@ -24,7 +39,8 @@ export class CreatePropertyDto implements CreatePropertyDto {
   type!: "Apartment" | "House" | "Condo" | "Villa" | "Townhouse";
   location!: string;
   description!: string;
-  imageUrl!: string;
+  imageUrl?: string;
+  images?: string[];
   specs!: {
     label: string;
     value: string;

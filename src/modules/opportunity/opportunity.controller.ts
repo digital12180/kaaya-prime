@@ -18,28 +18,61 @@ export class PropertyController {
   /**
    * Create a new property
    */
-  async createProperty(req: Request, res: Response): Promise<void> {
+  async createProperty(
+    req: Request,
+    res: Response
+  ): Promise<void> {
     try {
-      const createPropertyDto: CreatePropertyDto = req.body;
 
-      // Handle file uploads (multer should be configured)
-      const files = req.files as Express.Multer.File[];
-      const imageBuffers = files?.map((file) => file.buffer) || [];
+      const createPropertyDto: CreatePropertyDto = {
+        ...req.body,
 
-      const property = await propertyService.createProperty(
-        createPropertyDto,
-        imageBuffers
-      );
+        specs:
+          typeof req.body.specs === "string"
+            ? JSON.parse(req.body.specs)
+            : req.body.specs || [],
+
+        amenities:
+          typeof req.body.amenities === "string"
+            ? JSON.parse(req.body.amenities)
+            : req.body.amenities || []
+      };
+
+      const files = req.files as {
+        imageUrl?: Express.Multer.File[];
+        images?: Express.Multer.File[];
+      };
+
+      const mainImage =
+        files?.imageUrl?.[0]?.buffer || null;
+
+      const galleryImages =
+        files?.images?.map(
+          file => file.buffer
+        ) || [];
+
+      const property =
+        await propertyService.createProperty(
+          createPropertyDto,
+          mainImage,
+          galleryImages
+        );
 
       res.status(201).json({
         success: true,
         message: "Property created successfully",
-        data: PropertyResponseDto.fromDocument(property),
+        data: property
       });
+
     } catch (error: any) {
+
+      console.error("error--------", error);
+
       res.status(500).json({
         success: false,
-        message: error.message || "Failed to create property",
+        message:
+          error.message ||
+          "Failed to create property"
       });
     }
   }
