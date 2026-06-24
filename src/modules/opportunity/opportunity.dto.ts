@@ -24,7 +24,7 @@ export interface CreatePropertyDto {
 
   amenities: string[];
 
-  floorPlanUrl: string;
+  floorPlanUrl?: string;
 
   videoUrl?: string;
 
@@ -46,7 +46,7 @@ export class CreatePropertyDto implements CreatePropertyDto {
     value: string;
   }[];
   amenities!: string[];
-  floorPlanUrl!: string;
+  floorPlanUrl?: string;
   videoUrl?: string;
 }
 
