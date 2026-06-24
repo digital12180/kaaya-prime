@@ -41,10 +41,13 @@ export class PropertyController {
       const files = req.files as {
         imageUrl?: Express.Multer.File[];
         images?: Express.Multer.File[];
+        floorPlanUrl?: Express.Multer.File[];
       };
 
       const mainImage =
         files?.imageUrl?.[0]?.buffer || null;
+      const floorImage =
+        files?.floorPlanUrl?.[0]?.buffer || null;
 
       const galleryImages =
         files?.images?.map(
@@ -55,7 +58,8 @@ export class PropertyController {
         await propertyService.createProperty(
           createPropertyDto,
           mainImage,
-          galleryImages
+          galleryImages,
+          floorImage
         );
 
       res.status(201).json({

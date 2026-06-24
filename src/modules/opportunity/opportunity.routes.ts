@@ -15,7 +15,8 @@ router.post(
     "/",
     upload.fields([
         { name: "imageUrl", maxCount: 1 },
-        { name: "images", maxCount: 10 }
+        { name: "images", maxCount: 10 },
+        { name: "floorPlanUrl", maxCount: 1 }
     ]),
     propertyController.createProperty.bind(propertyController)
 );
@@ -24,7 +25,8 @@ router.put(
     "/:id",
     upload.fields([
         { name: "imageUrl", maxCount: 1 },
-        { name: "images", maxCount: 10 }
+        { name: "images", maxCount: 10 },
+        { name: "floorPlanUrl", maxCount: 1 }
     ]),
     propertyController.updateProperty.bind(propertyController)
 );
