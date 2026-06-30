@@ -11,14 +11,14 @@ const reportController = new ReportController();
 
 // Create a new report
 router.post(
-  '/',
+  '/create',
 //   validateCreateReport,
   reportController.createReport.bind(reportController)
 );
 
 // Get all reports with filtering and pagination
 router.get(
-  '/',
+  '/get-all',
 //   validateReportQuery,
   reportController.getAllReports.bind(reportController)
 );
