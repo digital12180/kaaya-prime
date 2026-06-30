@@ -183,39 +183,69 @@ export class ReportController {
         }
     }
 
-    // Update report
+
     async updateReport(req: Request, res: Response): Promise<Response> {
         try {
-            const { id } = req.params;
-            const updateData: IUpdateReportDto = req.body;
 
-            const updatedReport = await reportService.updateReport(id as string, updateData);
+            const { id } = req.params;
+
+            const body = req.body;
+
+            const files = req.files as {
+                image?: Express.Multer.File[];
+                file?: Express.Multer.File[];
+            };
+
+            const updateData: IUpdateReportDto = {
+                ...body,
+            };
+
+            // Upload new image if provided
+            if (files?.image?.[0]) {
+                updateData.imageUrl = await uploadToCloudinary(
+                    files.image[0].buffer,
+                    "image"
+                );
+            }
+
+            // Upload new pdf if provided
+            if (files?.file?.[0]) {
+                updateData.fileUrl = await uploadToCloudinary(
+                    files.file[0].buffer,
+                    "raw"
+                );
+            }
+
+            const updatedReport = await reportService.updateReport(
+                id as string,
+                updateData
+            );
 
             if (!updatedReport) {
                 return res.status(404).json({
                     success: false,
-                    message: 'Report not found',
+                    message: "Report not found",
                 });
             }
 
             return res.status(200).json({
                 success: true,
-                message: 'Report updated successfully',
+                message: "Report updated successfully",
                 data: updatedReport,
             });
+
         } catch (error: any) {
-            // Handle duplicate slug error
+
             if (error.code === 11000 && error.keyPattern?.slug) {
                 return res.status(409).json({
                     success: false,
-                    message: 'A report with this slug already exists',
+                    message: "Slug already exists",
                 });
             }
 
             return res.status(500).json({
                 success: false,
-                message: 'Failed to update report',
-                error: error.message,
+                message: error.message,
             });
         }
     }

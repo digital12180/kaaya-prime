@@ -91,15 +91,26 @@ export class ReportService {
         return await Report.findOne({ slug }).lean();
     }
 
-    async updateReport(id: string, updateData: IUpdateReportDto): Promise<IReport | null> {
+    async updateReport(
+        id: string,
+        updateData: IUpdateReportDto
+    ): Promise<IReport | null> {
+
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return null;
         }
-        return await Report.findByIdAndUpdate(
-            id,
-            updateData,
-            { new: true, runValidators: true }
-        ).lean();
+
+        const report = await Report.findById(id);
+
+        if (!report) {
+            return null;
+        }
+
+        Object.assign(report, updateData);
+
+        await report.save();
+
+        return report.toObject();
     }
 
     async deleteReport(id: string): Promise<IReport | null> {
