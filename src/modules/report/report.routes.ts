@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { ReportController } from './report.controller.js';
+import { upload } from '../../common/middleware/multer.middleware.js';
 // import {
 //   validateCreateReport,
 //   validateUpdateReport,
@@ -12,14 +13,24 @@ const reportController = new ReportController();
 // Create a new report
 router.post(
   '/create',
-//   validateCreateReport,
+  //   validateCreateReport,
+  upload.fields([
+    {
+      name: "image",
+      maxCount: 1,
+    },
+    {
+      name: "file",
+      maxCount: 1,
+    },
+  ]),
   reportController.createReport.bind(reportController)
 );
 
 // Get all reports with filtering and pagination
 router.get(
   '/get-all',
-//   validateReportQuery,
+  //   validateReportQuery,
   reportController.getAllReports.bind(reportController)
 );
 
@@ -50,7 +61,7 @@ router.get(
 // Update report
 router.put(
   '/:id',
-//   validateUpdateReport,
+  //   validateUpdateReport,
   reportController.updateReport.bind(reportController)
 );
 

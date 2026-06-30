@@ -86,21 +86,97 @@ type ResourceType = "image" | "raw" | "video" | "auto";
 
 export default cloudinary;
 
+// export const uploadToCloudinary = (
+//   fileBuffer: Buffer | string,
+//   resourceType: ResourceType = "image",
+//   fileName?: string
+// ): Promise<string> => {
+//   return new Promise((resolve, reject) => {
+//     // If fileBuffer is a string (URL), upload from URL
+//     if (typeof fileBuffer === "string") {
+//       cloudinary.uploader.upload(
+//         fileBuffer,
+//         {
+//           resource_type: resourceType as "image" | "video" | "raw" | "auto",
+//           folder: "properties",
+//           ...(fileName ? { public_id: fileName } : {}),
+//         },
+//         (error, result) => {
+//           if (error) return reject(error);
+//           resolve(result?.secure_url || "");
+//         }
+//       );
+//       return;
+//     }
+
+//     // Upload from buffer
+//     const uploadStream = cloudinary.uploader.upload_stream(
+//       {
+//         resource_type: resourceType as "image" | "raw" | "video" | "auto",
+//         folder: "properties",
+//         ...(fileName && { public_id: fileName }),
+//         allowed_formats: ["jpg", "png", "gif", "webp", "jpeg"],
+//       },
+//       (error, result) => {
+//         if (error) return reject(error);
+//         resolve(result?.secure_url || "");
+//       }
+//     );
+
+//     // Create readable stream from buffer
+//     const readableStream = new Readable();
+//     readableStream.push(fileBuffer);
+//     readableStream.push(null);
+//     readableStream.pipe(uploadStream);
+//   });
+// };
+
+// // Delete image from Cloudinary
+// export const deleteFromCloudinary = (publicId: string): Promise<void> => {
+//   return new Promise((resolve, reject) => {
+//     cloudinary.uploader.destroy(publicId, (error, result) => {
+//       if (error) return reject(error);
+//       resolve();
+//     });
+//   });
+// };
+
+// // Extract public ID from Cloudinary URL
+// export const getPublicIdFromUrl = (url: string): string => {
+//   const parts = url.split("/");
+//   const filename = parts[parts.length - 1];
+//   const publicId = (filename || "").split(".")[0] ?? "";
+//   return `properties/${publicId}`;
+// };
+
 export const uploadToCloudinary = (
   fileBuffer: Buffer | string,
   resourceType: ResourceType = "image",
   fileName?: string
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
-    // If fileBuffer is a string (URL), upload from URL
+
+    const options: any = {
+      resource_type: resourceType,
+      folder: "properties",
+      ...(fileName && { public_id: fileName }),
+    };
+
+    // Only restrict formats for images
+    if (resourceType === "image") {
+      options.allowed_formats = ["jpg", "jpeg", "png", "gif", "webp"];
+    }
+
+    // Only restrict formats for pdf
+    if (resourceType === "raw") {
+      options.allowed_formats = ["pdf"];
+    }
+
+    // Upload from URL
     if (typeof fileBuffer === "string") {
       cloudinary.uploader.upload(
         fileBuffer,
-        {
-          resource_type: resourceType as "image" | "video" | "raw" | "auto",
-          folder: "properties",
-          ...(fileName ? { public_id: fileName } : {}),
-        },
+        options,
         (error, result) => {
           if (error) return reject(error);
           resolve(result?.secure_url || "");
@@ -109,42 +185,18 @@ export const uploadToCloudinary = (
       return;
     }
 
-    // Upload from buffer
+    // Upload from Buffer
     const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        resource_type: resourceType as "image" | "raw" | "video" | "auto",
-        folder: "properties",
-        ...(fileName && { public_id: fileName }),
-        allowed_formats: ["jpg", "png", "gif", "webp", "jpeg"],
-      },
+      options,
       (error, result) => {
         if (error) return reject(error);
         resolve(result?.secure_url || "");
       }
     );
 
-    // Create readable stream from buffer
     const readableStream = new Readable();
     readableStream.push(fileBuffer);
     readableStream.push(null);
     readableStream.pipe(uploadStream);
   });
-};
-
-// Delete image from Cloudinary
-export const deleteFromCloudinary = (publicId: string): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    cloudinary.uploader.destroy(publicId, (error, result) => {
-      if (error) return reject(error);
-      resolve();
-    });
-  });
-};
-
-// Extract public ID from Cloudinary URL
-export const getPublicIdFromUrl = (url: string): string => {
-  const parts = url.split("/");
-  const filename = parts[parts.length - 1];
-  const publicId = (filename || "").split(".")[0] ?? "";
-  return `properties/${publicId}`;
 };

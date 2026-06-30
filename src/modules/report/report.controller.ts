@@ -1,34 +1,95 @@
 import type { Request, Response } from 'express';
 import { ReportService } from './report.service.js';
 import type { ICreateReportDto, IUpdateReportDto, IReportQueryDto } from './report.dto.js';
-
+import { uploadToCloudinary } from '../../config/cloudinary.js';
 const reportService = new ReportService();
 
 export class ReportController {
-    // Create a new report
+
     async createReport(req: Request, res: Response): Promise<Response> {
         try {
-            const reportData: ICreateReportDto = req.body;
+
+            const body = req.body;
+
+            const files = req.files as {
+                image?: Express.Multer.File[];
+                file?: Express.Multer.File[];
+            };
+
+            let imageUrl = "";
+            let fileUrl = "";
+
+            if (files?.image?.[0]) {
+                imageUrl = await uploadToCloudinary(
+                    files.image[0].buffer,
+                    "image"
+                );
+            }
+
+            if (files?.file?.[0]) {
+                fileUrl = await uploadToCloudinary(
+                    files.file[0].buffer,
+                    "raw"
+                );
+            }
+
+            // Upload Image
+            // if (files?.image?.length) {
+            //     imageUrl = await uploadToCloudinary(
+            //         files.image[0].buffer,
+            //         "image"
+            //     );
+            // }
+
+            // Upload PDF
+            // if (files?.file?.length) {
+            //     fileUrl = await uploadToCloudinary(
+            //         files.file[0].buffer,
+            //         "raw"
+            //     );
+            // }
+
+            // const files = req.files as {
+            //     image?: Express.Multer.File[];
+            //     file?: Express.Multer.File[];
+            // };
+
+
+            // if (files?.image?.[0]) {
+            //     imageUrl = await uploadToCloudinary(files.image[0].buffer, "image");
+            // }
+
+            // if (files?.file?.[0]) {
+            //     fileUrl = await uploadToCloudinary(files.file[0].buffer, "raw");
+            // }
+            const reportData: ICreateReportDto = {
+                ...body,
+                imageUrl,
+                fileUrl,
+            };
+
+            console.log(reportData);
+
             const report = await reportService.createReport(reportData);
 
             return res.status(201).json({
                 success: true,
-                message: 'Report created successfully',
+                message: "Report created successfully",
                 data: report,
             });
+
         } catch (error: any) {
-            // Handle duplicate slug error
+
             if (error.code === 11000 && error.keyPattern?.slug) {
                 return res.status(409).json({
                     success: false,
-                    message: 'A report with this slug already exists',
+                    message: "Slug already exists",
                 });
             }
 
             return res.status(500).json({
                 success: false,
-                message: 'Failed to create report',
-                error: error.message,
+                message: error.message,
             });
         }
     }
