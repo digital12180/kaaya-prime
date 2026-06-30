@@ -7,14 +7,15 @@ export interface IReport extends Document {
   growth: string;
   description: string;
   period: string;
-  fileSize: string;
-  fileType: string;
   imageUrl: string;
   fileUrl: string;
-  type: "marketinsights" | "annualreport";
+  type: "marketinsights" | "annualreport"|"all";
+  status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
   createdAt: Date;
   updatedAt: Date;
 }
+
+
 
 const ReportSchema: Schema<IReport> = new Schema(
   {
@@ -35,13 +36,13 @@ const ReportSchema: Schema<IReport> = new Schema(
 
     region: {
       type: String,
-      required: true,
+      default: "",
       trim: true,
     },
 
     growth: {
       type: String,
-      required: true,
+      default: "",
       trim: true,
     },
 
@@ -50,22 +51,9 @@ const ReportSchema: Schema<IReport> = new Schema(
       required: true,
       trim: true,
     },
-
     period: {
       type: String,
-      required: true,
-      trim: true,
-    },
-
-    fileSize: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    fileType: {
-      type: String,
-      required: true,
+      default: "",
       trim: true,
     },
 
@@ -79,11 +67,16 @@ const ReportSchema: Schema<IReport> = new Schema(
       type: String,
       required: true,
     },
-
     type: {
       type: String,
-      enum: ["marketinsights", "annualreport"],
-      required: true,
+      enum: ["marketinsights", "annualreport", "all"],
+      default: "all",
+      index: true,
+    },
+    status: {
+      type: String,
+      enum: ["DRAFT", "PUBLISHED", "ARCHIVED"],
+      default: "PUBLISHED",
       index: true,
     },
   },

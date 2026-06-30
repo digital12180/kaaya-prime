@@ -4,11 +4,21 @@ import mongoose from 'mongoose';
 import type { ICreateReportDto, IUpdateReportDto, IReportQueryDto } from './report.dto.js';
 
 export class ReportService {
-    async createReport(reportData: ICreateReportDto): Promise<IReport> {
-        const report = new Report(reportData);
-        return await report.save();
-    }
+    // async createReport(reportData: ICreateReportDto): Promise<IReport> {
 
+    //         console.log("data in service-------",reportData)
+
+    //     const report = new Report(reportData);
+    //     return await report.save();
+    // }
+
+    async createReport(reportData: ICreateReportDto): Promise<IReport> {
+
+        const report = new Report(reportData);
+
+        return await report.save();
+
+    }
     async getAllReports(queryParams: IReportQueryDto): Promise<{
         reports: IReport[];
         total: number;

@@ -1,15 +1,14 @@
 export interface ICreateReportDto {
   title: string;
   slug: string;
-  region: string;
-  growth: string;
+  region?: string;
+  growth?: string;
   description: string;
-  period: string;
-  fileSize: string;
-  fileType: string;
+  period?: string;
   imageUrl: string;
   fileUrl: string;
-  type: "all" | "marketinsights" | "annualreport";
+  status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+  type?: "all" | "marketinsights" | "annualreport";
 }
 
 export interface IUpdateReportDto {
