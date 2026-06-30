@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { ReportController } from './report.controller.js';
 import { upload } from '../../common/middleware/multer.middleware.js';
+import { verifyToken, adminOnly } from "../../common/middleware/auth.middleware.js";
+
 // import {
 //   validateCreateReport,
 //   validateUpdateReport,
@@ -14,6 +16,8 @@ const reportController = new ReportController();
 router.post(
   '/create',
   //   validateCreateReport,
+  verifyToken,
+  adminOnly,
   upload.fields([
     {
       name: "image",
@@ -61,6 +65,18 @@ router.get(
 // Update report
 router.put(
   '/:id',
+  verifyToken,
+  adminOnly,
+  upload.fields([
+    {
+      name: "image",
+      maxCount: 1,
+    },
+    {
+      name: "file",
+      maxCount: 1,
+    },
+  ]),
   //   validateUpdateReport,
   reportController.updateReport.bind(reportController)
 );
@@ -68,6 +84,8 @@ router.put(
 // Delete report
 router.delete(
   '/:id',
+  verifyToken,
+  adminOnly,
   reportController.deleteReport.bind(reportController)
 );
 
