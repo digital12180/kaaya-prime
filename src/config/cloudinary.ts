@@ -162,15 +162,23 @@ export const uploadToCloudinary = (
       ...(fileName && { public_id: fileName }),
     };
 
-    // Only restrict formats for images
+    if (resourceType === "raw") {
+      options.format = "pdf";
+    }
+
     if (resourceType === "image") {
       options.allowed_formats = ["jpg", "jpeg", "png", "gif", "webp"];
     }
 
-    // Only restrict formats for pdf
-    if (resourceType === "raw") {
-      options.allowed_formats = ["pdf"];
-    }
+    // Only restrict formats for images
+    // if (resourceType === "image") {
+    //   options.allowed_formats = ["jpg", "jpeg", "png", "gif", "webp"];
+    // }
+
+    // // Only restrict formats for pdf
+    // if (resourceType === "raw") {
+    //   options.allowed_formats = ["pdf"];
+    // }
 
     // Upload from URL
     if (typeof fileBuffer === "string") {

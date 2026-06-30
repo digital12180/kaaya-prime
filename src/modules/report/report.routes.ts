@@ -16,8 +16,8 @@ const reportController = new ReportController();
 router.post(
   '/create',
   //   validateCreateReport,
-  verifyToken,
-  adminOnly,
+  // verifyToken,
+  // adminOnly,
   upload.fields([
     {
       name: "image",
