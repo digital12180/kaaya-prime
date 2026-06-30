@@ -1,7 +1,7 @@
 // services/landingPage.service.ts
 import mongoose from "mongoose";
 import { LandingPage } from "./landingPage.model.js";
-import { Property } from "../opportunity/property.model.js";
+import  Property  from "../opportunity/property.model.js";
 import type {
     ICreateLandingPageDto,
     IUpdateLandingPageDto,

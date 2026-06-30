@@ -1,4 +1,4 @@
-import { Property } from "./property.model.js";
+import Property from "./property.model.js";
 import type { IProperty } from "./property.model.js";
 import { CreatePropertyDto } from "./opportunity.dto.js";
 import { UpdatePropertyDto } from "./opportunity.dto.js";

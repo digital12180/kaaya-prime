@@ -11,6 +11,8 @@ import insightRoutes from "../modules/dashboard/Insight.route.js";
 import rentalyieldRoutes from "../modules/dashboard/rental-yield.route.js";
 import developerRoutes from "../modules/dashboard/developer.route.js";
 import stageRoutes from "../modules/dashboard/stage.route.js";
+import dashboardRoute from "../modules/crm/dashboard.route.js"
+import propertyRoutes from "../modules/property/property.route.js"
 const router = Router();
 
 router.use('/auth', authRoutes);
@@ -25,7 +27,8 @@ router.use('/insights', insightRoutes);
 router.use('/rental-yields', rentalyieldRoutes);
 router.use('/developer-scores', developerRoutes);
 router.use('/stages', stageRoutes);
-
+router.use("/dashboard",dashboardRoute);
+router.use("/landingpage",propertyRoutes);
 
 
 export default router;
