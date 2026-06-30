@@ -132,7 +132,9 @@ PropertySchema.index({
   createdAt: -1,
 });
 
-export const Property = mongoose.model<IProperty>(
-  "Property",
+const Property = mongoose.model<IProperty>(
+  "PropertyDetail",
   PropertySchema
 );
+
+export default Property;
