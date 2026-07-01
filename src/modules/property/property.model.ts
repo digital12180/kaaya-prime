@@ -4,28 +4,22 @@ import mongoose, { Schema, Document } from 'mongoose';
 interface IPropertySpec {
   label: string;
   value: string;
-  // icon: string;
-  // valueColor?: string;
 }
 
 interface IAmenity {
   label: string;
-  // icon: string;
 }
 
 interface IAgent {
-  id: string;
+  id?: string;
   name: string;
   role: string;
   image?: string;
-  // dealsCount: number;
-  // rating: number;
   phone?: string;
   email?: string;
 }
 
 interface INeighborhoodInsight {
-  // icon: string;
   title: string;
   subtitle: string;
   distance: string;
@@ -41,16 +35,11 @@ interface IAddress {
   city: string;
   area: string;
   country: string;
-  // coordinates: {
-  //   lat: number;
-  //   lng: number;
-  // };
 }
 
 interface IImage {
   url: string;
   alt: string;
-  // isPrimary?: boolean;
 }
 
 interface IFloorPlan {
@@ -59,7 +48,7 @@ interface IFloorPlan {
 }
 
 export interface IProperty extends Document {
-  id: string;
+  // id: string;
   title: string;
   price: number;
   currency: string;
@@ -81,7 +70,7 @@ export interface IProperty extends Document {
 
 const PropertySchema = new Schema<IProperty>(
   {
-    id: { type: String, required: true, unique: true },
+    // id: { type: String, required: true, unique: true },
     title: { type: String, required: true },
     price: { type: Number, required: true },
     currency: { type: String, default: 'USD' },
@@ -140,7 +129,7 @@ const PropertySchema = new Schema<IProperty>(
       label: { type: String, default: "" },
     },
     agent: {
-      id: { type: String, required: true },
+      id: { type: String},
       name: { type: String, required: true },
       role: { type: String, required: true },
       image: { type: String},

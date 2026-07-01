@@ -30,7 +30,7 @@ export interface IFloorPlanDto {
 }
 
 export interface IAgentDto {
-  id: string;
+  id?: string;
   name: string;
   role: string;
   image?: string;
