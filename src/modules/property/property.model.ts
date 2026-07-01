@@ -4,13 +4,13 @@ import mongoose, { Schema, Document } from 'mongoose';
 interface IPropertySpec {
   label: string;
   value: string;
-  icon: string;
-  valueColor?: string;
+  // icon: string;
+  // valueColor?: string;
 }
 
 interface IAmenity {
   label: string;
-  icon: string;
+  // icon: string;
 }
 
 interface IAgent {
@@ -18,14 +18,14 @@ interface IAgent {
   name: string;
   role: string;
   image: string;
-  dealsCount: number;
-  rating: number;
+  // dealsCount: number;
+  // rating: number;
   phone?: string;
   email?: string;
 }
 
 interface INeighborhoodInsight {
-  icon: string;
+  // icon: string;
   title: string;
   subtitle: string;
   distance: string;
@@ -41,16 +41,16 @@ interface IAddress {
   city: string;
   area: string;
   country: string;
-  coordinates: {
-    lat: number;
-    lng: number;
-  };
+  // coordinates: {
+  //   lat: number;
+  //   lng: number;
+  // };
 }
 
 interface IImage {
   url: string;
   alt: string;
-  isPrimary?: boolean;
+  // isPrimary?: boolean;
 }
 
 interface IFloorPlan {
@@ -77,8 +77,6 @@ export interface IProperty extends Document {
   agent: IAgent;
   neighborhoodInsights: INeighborhoodInsight[];
   highlights: IPropertyHighlight[];
-  verified: boolean;
-  noHiddenFees: boolean;
 }
 
 const PropertySchema = new Schema<IProperty>(
@@ -107,10 +105,10 @@ const PropertySchema = new Schema<IProperty>(
       city: { type: String, required: true },
       area: { type: String, required: true },
       country: { type: String, required: true },
-      coordinates: {
-        lat: { type: Number, required: true },
-        lng: { type: Number, required: true },
-      },
+      // coordinates: {
+      //   lat: { type: Number, required: true },
+      //   lng: { type: Number, required: true },
+      // },
     },
     listedAt: { type: Date, default: Date.now },
     description: { type: String, required: true },
@@ -118,14 +116,14 @@ const PropertySchema = new Schema<IProperty>(
       {
         label: { type: String, required: true },
         value: { type: String, required: true },
-        icon: { type: String, required: true },
-        valueColor: { type: String },
+        // icon: { type: String, required: true },
+        // valueColor: { type: String },
       },
     ],
     amenities: [
       {
         label: { type: String, required: true },
-        icon: { type: String, required: true },
+        // icon: { type: String, required: true },
       },
     ],
     images: [
@@ -139,25 +137,25 @@ const PropertySchema = new Schema<IProperty>(
     videoTourUrl: { type: String },
     floorPlan: {
       url: { type: String, required: true },
-      label: { type: String, required: true },
+      label: { type: String, default: "" },
     },
     agent: {
       id: { type: String, required: true },
       name: { type: String, required: true },
       role: { type: String, required: true },
       image: { type: String, required: true },
-      dealsCount: { type: Number, required: true },
-      rating: { type: Number, required: true },
+      // dealsCount: { type: Number, required: true },
+      // rating: { type: Number, required: true },
       phone: { type: String },
       email: { type: String },
     },
     neighborhoodInsights: [
       {
-        icon: { type: String, required: true },
+        // icon: { type: String, required: true },
         title: { type: String, required: true },
         subtitle: { type: String, required: true },
-        distance: { type: String, required: true },
-        rating: { type: String, required: true },
+        distance: { type: String },
+        rating: { type: String },
       },
     ],
     highlights: [
@@ -165,20 +163,20 @@ const PropertySchema = new Schema<IProperty>(
         text: { type: String, required: true },
       },
     ],
-    verified: { type: Boolean, default: false },
-    noHiddenFees: { type: Boolean, default: false },
+    // verified: { type: Boolean, default: false },
+    // noHiddenFees: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
-// Pre-save middleware to ensure coordinates are numbers
-PropertySchema.pre('save', function () {
-  if (this.address.coordinates) {
-    this.address.coordinates.lat = Number(this.address.coordinates.lat);
-    this.address.coordinates.lng = Number(this.address.coordinates.lng);
-  }
-  //   next();
-});
+// // Pre-save middleware to ensure coordinates are numbers
+// PropertySchema.pre('save', function () {
+//   if (this.address.coordinates) {
+//     this.address.coordinates.lat = Number(this.address.coordinates.lat);
+//     this.address.coordinates.lng = Number(this.address.coordinates.lng);
+//   }
+//   //   next();
+// });
 
 // Indexes for better query performance
 PropertySchema.index({ 'address.city': 1 });
