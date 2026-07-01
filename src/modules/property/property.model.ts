@@ -174,6 +174,7 @@ const PropertySchema = new Schema<IProperty>(
 
 // Indexes for better query performance
 // PropertySchema.properties.getIndexes()
+
 PropertySchema.index({ 'address.city': 1 });
 PropertySchema.index({ 'address.area': 1 });
 PropertySchema.index({ status: 1 });

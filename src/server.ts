@@ -1,6 +1,7 @@
 import { errorHandler } from "./common/middleware/error.middleware.js";
 import http from "http";
 import { connectDB } from "./config/db.js";
+import { Property } from "./modules/property/property.model.js";
 
 
 import dotenv from "dotenv";
@@ -34,6 +35,10 @@ const startServer = async (): Promise<void> => {
     try {
 
         await connectDatabase();
+        // console.log(await Property.collection.indexes());
+        // await Property.collection.dropIndex("id_1");
+        // console.log("id_1 index dropped");
+        // console.log(await Property.collection.indexes());
         // Start Express server
         app.listen(PORT, () => {
             console.log("server started at port :", PORT);
