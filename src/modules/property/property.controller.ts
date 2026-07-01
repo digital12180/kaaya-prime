@@ -6,8 +6,15 @@ import { uploadToCloudinary } from '../../config/cloudinary.js';
 const propertyService = new PropertyService();
 
 export class PropertyController {
-    // Create a new property
-    // Create a new property
+    private generateSlug(title: string): string {
+        return title
+            .toLowerCase()
+            .trim()
+            .replace(/[^\w\s-]/g, "")     // Remove special characters
+            .replace(/\s+/g, "-")         // Replace spaces with -
+            .replace(/-+/g, "-");         // Remove multiple -
+    }
+
     async create(req: Request, res: Response) {
         try {
             // Parse the main data
@@ -168,8 +175,37 @@ export class PropertyController {
     // Update a property
     async update(req: Request, res: Response) {
         try {
+
             const { id } = req.params;
-            const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+
+            let body =
+                typeof req.body.data === "string"
+                    ? JSON.parse(req.body.data)
+                    : req.body;
+
+            const parseField = (field: any) => {
+                if (typeof field === "string") {
+                    try {
+                        return JSON.parse(field);
+                    } catch {
+                        return field;
+                    }
+                }
+                return field;
+            };
+
+            body.address = parseField(body.address);
+            body.specs = parseField(body.specs);
+            body.agent = parseField(body.agent);
+            body.amenities = parseField(body.amenities);
+            body.highlights = parseField(body.highlights);
+            body.neighborhoodInsights = parseField(body.neighborhoodInsights);
+            body.floorPlan = parseField(body.floorPlan);
+
+            if (body.title) {
+                body.slug = this.generateSlug(body.title);
+            }
+
             const files = req.files as {
                 images?: Express.Multer.File[];
                 floorPlan?: Express.Multer.File[];
@@ -183,20 +219,23 @@ export class PropertyController {
                     )
                 );
             }
+
+            // Upload new Floor Plan if provided
             const floorPlanFile = files?.floorPlan?.[0];
 
             if (floorPlanFile) {
-                const url = await uploadToCloudinary(
+                const floorPlanUrl = await uploadToCloudinary(
                     floorPlanFile.buffer,
                     "image"
                 );
 
                 body.floorPlan = {
-                    ...(body.floorPlan || {}),
-                    url,
+                    url: floorPlanUrl,
+                    label: body.floorPlan?.label || "",
                 };
             }
 
+            // Upload new Video Tour if provided
             const videoFile = files?.videoTour?.[0];
 
             if (videoFile) {
@@ -205,26 +244,16 @@ export class PropertyController {
                     "video"
                 );
             }
-            const property = await propertyService.updateProperty(id as string, body as IUpdatePropertyDto);
 
-            if (!property) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Property not found',
-                });
-            }
+            const property = await propertyService.updateProperty(id as string, body);
 
-            res.status(200).json({
+            return res.json({
                 success: true,
-                data: property,
+                data: property
             });
-        } catch (error) {
-            console.error('Update property error:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Failed to update property',
-                error: error instanceof Error ? error.message : 'Unknown error',
-            });
+
+        } catch (err) {
+
         }
     }
 
