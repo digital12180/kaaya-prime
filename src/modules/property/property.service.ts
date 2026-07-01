@@ -4,17 +4,20 @@ import type { ICreatePropertyDto, IUpdatePropertyDto, IQueryPropertyDto } from '
 
 export class PropertyService {
     // Generate a unique ID
-    private generateId(): string {
-        const timestamp = Date.now().toString(36);
-        const random = Math.random().toString(36).substring(2, 6);
-        return `prop_${timestamp}_${random}`;
+    private generateSlug(title: string): string {
+        return title
+            .toLowerCase()
+            .trim()
+            .replace(/[^\w\s-]/g, "")     // Remove special characters
+            .replace(/\s+/g, "-")         // Replace spaces with -
+            .replace(/-+/g, "-");         // Remove multiple -
     }
 
     // Create a new property
     async createProperty(createPropertyDto: ICreatePropertyDto): Promise<IProperty> {
         const property = new Property({
             ...createPropertyDto,
-            id: this.generateId(),
+            slug: this.generateSlug(createPropertyDto.title),
         });
         return await property.save();
     }
@@ -106,8 +109,8 @@ export class PropertyService {
     }
 
     // Get a single property by ID
-    async getPropertyById(id: string): Promise<IProperty | null> {
-        return await Property.findOne({ _id: id }).exec();
+    async getPropertyById(slug: string): Promise<IProperty | null> {
+        return await Property.findOne({ slug: slug }).exec();
     }
 
     // Update a property

@@ -48,7 +48,7 @@ interface IFloorPlan {
 }
 
 export interface IProperty extends Document {
-  // id: string;
+  slug: string;
   title: string;
   price: number;
   currency: string;
@@ -70,7 +70,13 @@ export interface IProperty extends Document {
 
 const PropertySchema = new Schema<IProperty>(
   {
-    // id: { type: String, required: true, unique: true },
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+    },
     title: { type: String, required: true },
     price: { type: Number, required: true },
     currency: { type: String, default: 'USD' },
@@ -129,10 +135,10 @@ const PropertySchema = new Schema<IProperty>(
       label: { type: String, default: "" },
     },
     agent: {
-      id: { type: String},
+      id: { type: String },
       name: { type: String, required: true },
       role: { type: String, required: true },
-      image: { type: String},
+      image: { type: String },
       // dealsCount: { type: Number, required: true },
       // rating: { type: Number, required: true },
       phone: { type: String },
@@ -168,6 +174,7 @@ const PropertySchema = new Schema<IProperty>(
 // });
 
 // Indexes for better query performance
+// PropertySchema.properties.getIndexes()
 PropertySchema.index({ 'address.city': 1 });
 PropertySchema.index({ 'address.area': 1 });
 PropertySchema.index({ status: 1 });

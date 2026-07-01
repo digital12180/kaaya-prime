@@ -25,7 +25,7 @@ router.get(
 );
 
 router.get(
-  '/:id',
+  '/slug/:slug',
   propertyController.getById.bind(propertyController)
 );
 
