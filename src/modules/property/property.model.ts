@@ -121,11 +121,6 @@ const PropertySchema = new Schema<IProperty>(
       },
     ],
     images: [
-      // {
-      //   url: { type: String, required: true },
-      //   alt: { type: String, required: true },
-      //   isPrimary: { type: Boolean, default: false },
-      // },
       { type: String }
     ],
     videoTourUrl: { type: String },

@@ -173,11 +173,95 @@ export class PropertyController {
     }
 
     // Update a property
+    // async update(req: Request, res: Response) {
+    //     try {
+
+    //         const { id } = req.params;
+
+    //         let body =
+    //             typeof req.body.data === "string"
+    //                 ? JSON.parse(req.body.data)
+    //                 : req.body;
+
+    //         const parseField = (field: any) => {
+    //             if (typeof field === "string") {
+    //                 try {
+    //                     return JSON.parse(field);
+    //                 } catch {
+    //                     return field;
+    //                 }
+    //             }
+    //             return field;
+    //         };
+
+    //         body.address = parseField(body.address);
+    //         body.specs = parseField(body.specs);
+    //         body.agent = parseField(body.agent);
+    //         body.amenities = parseField(body.amenities);
+    //         body.highlights = parseField(body.highlights);
+    //         body.neighborhoodInsights = parseField(body.neighborhoodInsights);
+    //         body.floorPlan = parseField(body.floorPlan);
+
+    //         if (body.title) {
+    //             body.slug = this.generateSlug(body.title);
+    //         }
+
+    //         const files = req.files as {
+    //             images?: Express.Multer.File[];
+    //             floorPlan?: Express.Multer.File[];
+    //             videoTour?: Express.Multer.File[];
+    //         };
+
+    //         if (files?.images?.length) {
+    //             body.images = await Promise.all(
+    //                 files.images.map(file =>
+    //                     uploadToCloudinary(file.buffer, "image")
+    //                 )
+    //             );
+    //         }
+
+    //         // Upload new Floor Plan if provided
+    //         const floorPlanFile = files?.floorPlan?.[0];
+
+    //         if (floorPlanFile) {
+    //             const floorPlanUrl = await uploadToCloudinary(
+    //                 floorPlanFile.buffer,
+    //                 "image"
+    //             );
+
+    //             body.floorPlan = {
+    //                 url: floorPlanUrl,
+    //                 label: body.floorPlan?.label || "",
+    //             };
+    //         }
+
+    //         // Upload new Video Tour if provided
+    //         const videoFile = files?.videoTour?.[0];
+
+    //         if (videoFile) {
+    //             body.videoTourUrl = await uploadToCloudinary(
+    //                 videoFile.buffer,
+    //                 "video"
+    //             );
+    //         }
+
+    //         const property = await propertyService.updateProperty(id as string, body);
+
+    //         return res.json({
+    //             success: true,
+    //             data: property
+    //         });
+
+    //     } catch (err) {
+
+    //     }
+    // }
+
     async update(req: Request, res: Response) {
         try {
-
             const { id } = req.params;
 
+            // Parse body
             let body =
                 typeof req.body.data === "string"
                     ? JSON.parse(req.body.data)
@@ -201,7 +285,9 @@ export class PropertyController {
             body.highlights = parseField(body.highlights);
             body.neighborhoodInsights = parseField(body.neighborhoodInsights);
             body.floorPlan = parseField(body.floorPlan);
+            body.existingImages = parseField(body.existingImages);
 
+            // Generate slug if title changed
             if (body.title) {
                 body.slug = this.generateSlug(body.title);
             }
@@ -212,15 +298,34 @@ export class PropertyController {
                 videoTour?: Express.Multer.File[];
             };
 
+            // ===================== Images =====================
+
+            const existingImages: string[] = Array.isArray(body.existingImages)
+                ? body.existingImages
+                : [];
+
+            let uploadedImages: string[] = [];
+
             if (files?.images?.length) {
-                body.images = await Promise.all(
+                uploadedImages = await Promise.all(
                     files.images.map(file =>
                         uploadToCloudinary(file.buffer, "image")
                     )
                 );
             }
 
-            // Upload new Floor Plan if provided
+            // Only update images if frontend sends existingImages
+            if (body.existingImages !== undefined || uploadedImages.length > 0) {
+                body.images = [
+                    ...existingImages,
+                    ...uploadedImages
+                ];
+            }
+
+            delete body.existingImages;
+
+            // ===================== Floor Plan =====================
+
             const floorPlanFile = files?.floorPlan?.[0];
 
             if (floorPlanFile) {
@@ -235,6 +340,9 @@ export class PropertyController {
                 };
             }
 
+            // ===================== Video =====================
+
+
             // Upload new Video Tour if provided
             const videoFile = files?.videoTour?.[0];
 
@@ -244,16 +352,34 @@ export class PropertyController {
                     "video"
                 );
             }
+            // ===================== Update =====================
 
-            const property = await propertyService.updateProperty(id as string, body);
+            const property = await propertyService.updateProperty(
+                id as string,
+                body
+            );
 
-            return res.json({
+            if (!property) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Property not found"
+                });
+            }
+
+            return res.status(200).json({
                 success: true,
                 data: property
             });
 
-        } catch (err) {
+        } catch (error) {
 
+            console.error("Update Property Error:", error);
+
+            return res.status(500).json({
+                success: false,
+                message: "Failed to update property",
+                error: error instanceof Error ? error.message : "Unknown Error"
+            });
         }
     }
 
