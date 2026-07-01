@@ -7,14 +7,15 @@ const propertyService = new PropertyService();
 
 export class PropertyController {
     // Create a new property
+    // Create a new property
     async create(req: Request, res: Response) {
         try {
+            // Parse the main data
+            let body = typeof req.body.data === "string"
+                ? JSON.parse(req.body.data)
+                : req.body;
 
-            const body =
-                typeof req.body.data === "string"
-                    ? JSON.parse(req.body.data)
-                    : req.body;
-
+            // Helper function to parse JSON strings
             const parseField = (field: any) => {
                 if (typeof field === "string") {
                     try {
@@ -26,6 +27,7 @@ export class PropertyController {
                 return field;
             };
 
+            // Parse all nested fields
             body.address = parseField(body.address);
             body.specs = parseField(body.specs);
             body.agent = parseField(body.agent);
@@ -33,7 +35,8 @@ export class PropertyController {
             body.highlights = parseField(body.highlights);
             body.neighborhoodInsights = parseField(body.neighborhoodInsights);
             body.floorPlan = parseField(body.floorPlan);
-            
+
+            // Get uploaded files
             const files = req.files as {
                 images?: Express.Multer.File[];
                 floorPlan?: Express.Multer.File[];
@@ -42,30 +45,30 @@ export class PropertyController {
 
             // Upload Images
             let imageUrls: string[] = [];
-
             if (files?.images?.length) {
                 imageUrls = await Promise.all(
-                    files.images.map(file =>
-                        uploadToCloudinary(file.buffer, "image")
-                    )
+                    files.images.map(file => uploadToCloudinary(file.buffer, "image"))
                 );
+                body.images = imageUrls; // Set images after upload
             }
 
             // Upload Floor Plan
+            // ================= Upload Floor Plan =================
             const floorPlanFile = files?.floorPlan?.[0];
 
             if (floorPlanFile) {
-                const url = await uploadToCloudinary(
+                const floorPlanUrl = await uploadToCloudinary(
                     floorPlanFile.buffer,
                     "image"
                 );
 
                 body.floorPlan = {
-                    ...(body.floorPlan || {}),
-                    url,
+                    url: floorPlanUrl,
+                    label: body.floorPlan?.label ?? "",
                 };
             }
 
+            // ================= Upload Video Tour =================
             const videoFile = files?.videoTour?.[0];
 
             if (videoFile) {
@@ -75,17 +78,7 @@ export class PropertyController {
                 );
             }
 
-            body.images = imageUrls;
-
-            // body.floorPlan = {
-            //     ...body.floorPlan,
-            //     url: floorPlanUrl,
-            // };
-
-            // if (videoUrl) {
-            //     body.videoTourUrl = videoUrl;
-            // }
-
+            // Create property with all data
             const property = await propertyService.createProperty(body);
 
             return res.status(201).json({
@@ -94,14 +87,13 @@ export class PropertyController {
             });
 
         } catch (error) {
-
-            console.error(error);
+            console.error("Property creation error:", error);
 
             return res.status(500).json({
                 success: false,
                 message: "Failed to create property",
+                error: error instanceof Error ? error.message : "Unknown error",
             });
-
         }
     }
 
