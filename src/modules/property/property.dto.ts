@@ -7,33 +7,21 @@ export interface IAddressDto {
   city: string;
   area: string;
   country: string;
-  coordinates: {
-    lat: number;
-    lng: number;
-  };
 }
 
-export interface ICoordinatesDto {
-  lat: number;
-  lng: number;
-}
 
 export interface IPropertySpecDto {
   label: string;
   value: string;
-  icon: string;
-  valueColor?: string;
 }
 
 export interface IAmenityDto {
   label: string;
-  icon: string;
 }
 
 export interface IImageDto {
   url: string;
   alt: string;
-  isPrimary?: boolean;
 }
 
 export interface IFloorPlanDto {
@@ -46,14 +34,11 @@ export interface IAgentDto {
   name: string;
   role: string;
   image?: string;
-  dealsCount: number;
-  rating: number;
   phone?: string;
   email?: string;
 }
 
 export interface INeighborhoodInsightDto {
-  icon: string;
   title: string;
   subtitle: string;
   distance: string;
@@ -84,8 +69,6 @@ export interface ICreatePropertyDto {
   agent: IAgentDto;
   neighborhoodInsights: INeighborhoodInsightDto[];
   highlights: IPropertyHighlightDto[];
-  verified?: boolean;
-  noHiddenFees?: boolean;
 }
 
 export interface IUpdatePropertyDto {
@@ -106,8 +89,6 @@ export interface IUpdatePropertyDto {
   agent?: IAgentDto;
   neighborhoodInsights?: INeighborhoodInsightDto[];
   highlights?: IPropertyHighlightDto[];
-  verified?: boolean;
-  noHiddenFees?: boolean;
 }
 
 export interface IQueryPropertyDto {

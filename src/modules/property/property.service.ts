@@ -107,13 +107,13 @@ export class PropertyService {
 
     // Get a single property by ID
     async getPropertyById(id: string): Promise<IProperty | null> {
-        return await Property.findOne({ _id:id }).exec();
+        return await Property.findOne({ _id: id }).exec();
     }
 
     // Update a property
     async updateProperty(id: string, updatePropertyDto: IUpdatePropertyDto): Promise<IProperty | null> {
         return await Property.findOneAndUpdate(
-            { id },
+            { _id: id },
             { $set: updatePropertyDto },
             { new: true, runValidators: true }
         ).exec();
@@ -121,6 +121,6 @@ export class PropertyService {
 
     // Delete a property
     async deleteProperty(id: string): Promise<IProperty | null> {
-        return await Property.findOneAndDelete({ id }).exec();
+        return await Property.findOneAndDelete({ _id: id }).exec();
     }
 }
