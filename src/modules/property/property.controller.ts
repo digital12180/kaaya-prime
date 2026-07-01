@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import { PropertyService } from './property.service.js';
 import type { ICreatePropertyDto, IUpdatePropertyDto, IQueryPropertyDto } from './property.dto.js';
+import { uploadToCloudinary } from '../../config/cloudinary.js';
 
 const propertyService = new PropertyService();
 
@@ -8,33 +9,80 @@ export class PropertyController {
     // Create a new property
     async create(req: Request, res: Response) {
         try {
-            // Parse the body if it's a string (for multipart form data)
-            const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
 
-            // Validate required fields
-            const requiredFields = ['title', 'price', 'priceUnit', 'listingType', 'address', 'description', 'specs', 'amenities', 'images', 'floorPlan', 'agent', 'neighborhoodInsights', 'highlights'];
-            const missingFields = requiredFields.filter(field => !body[field]);
+            const body =
+                typeof req.body.data === "string"
+                    ? JSON.parse(req.body.data)
+                    : req.body;
 
-            if (missingFields.length > 0) {
-                return res.status(400).json({
-                    success: false,
-                    message: `Missing required fields: ${missingFields.join(', ')}`,
-                });
+            const files = req.files as {
+                images?: Express.Multer.File[];
+                floorPlan?: Express.Multer.File[];
+                videoTour?: Express.Multer.File[];
+            };
+
+            // Upload Images
+            let imageUrls: string[] = [];
+
+            if (files?.images?.length) {
+                imageUrls = await Promise.all(
+                    files.images.map(file =>
+                        uploadToCloudinary(file.buffer, "image")
+                    )
+                );
             }
 
-            const property = await propertyService.createProperty(body as ICreatePropertyDto);
+            // Upload Floor Plan
+            const floorPlanFile = files?.floorPlan?.[0];
 
-            res.status(201).json({
+            if (floorPlanFile) {
+                const url = await uploadToCloudinary(
+                    floorPlanFile.buffer,
+                    "image"
+                );
+
+                body.floorPlan = {
+                    ...(body.floorPlan || {}),
+                    url,
+                };
+            }
+
+            const videoFile = files?.videoTour?.[0];
+
+            if (videoFile) {
+                body.videoTourUrl = await uploadToCloudinary(
+                    videoFile.buffer,
+                    "video"
+                );
+            }
+
+            body.images = imageUrls;
+
+            // body.floorPlan = {
+            //     ...body.floorPlan,
+            //     url: floorPlanUrl,
+            // };
+
+            // if (videoUrl) {
+            //     body.videoTourUrl = videoUrl;
+            // }
+
+            const property = await propertyService.createProperty(body);
+
+            return res.status(201).json({
                 success: true,
                 data: property,
             });
+
         } catch (error) {
-            console.error('Create property error:', error);
-            res.status(500).json({
+
+            console.error(error);
+
+            return res.status(500).json({
                 success: false,
-                message: 'Failed to create property',
-                error: error instanceof Error ? error.message : 'Unknown error',
+                message: "Failed to create property",
             });
+
         }
     }
 
@@ -111,7 +159,41 @@ export class PropertyController {
         try {
             const { id } = req.params;
             const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+            const files = req.files as {
+                images?: Express.Multer.File[];
+                floorPlan?: Express.Multer.File[];
+                videoTour?: Express.Multer.File[];
+            };
 
+            if (files?.images?.length) {
+                body.images = await Promise.all(
+                    files.images.map(file =>
+                        uploadToCloudinary(file.buffer, "image")
+                    )
+                );
+            }
+            const floorPlanFile = files?.floorPlan?.[0];
+
+            if (floorPlanFile) {
+                const url = await uploadToCloudinary(
+                    floorPlanFile.buffer,
+                    "image"
+                );
+
+                body.floorPlan = {
+                    ...(body.floorPlan || {}),
+                    url,
+                };
+            }
+
+            const videoFile = files?.videoTour?.[0];
+
+            if (videoFile) {
+                body.videoTourUrl = await uploadToCloudinary(
+                    videoFile.buffer,
+                    "video"
+                );
+            }
             const property = await propertyService.updateProperty(id as string, body as IUpdatePropertyDto);
 
             if (!property) {
