@@ -15,6 +15,25 @@ export class PropertyController {
                     ? JSON.parse(req.body.data)
                     : req.body;
 
+            const parseField = (field: any) => {
+                if (typeof field === "string") {
+                    try {
+                        return JSON.parse(field);
+                    } catch {
+                        return field;
+                    }
+                }
+                return field;
+            };
+
+            body.address = parseField(body.address);
+            body.specs = parseField(body.specs);
+            body.agent = parseField(body.agent);
+            body.amenities = parseField(body.amenities);
+            body.highlights = parseField(body.highlights);
+            body.neighborhoodInsights = parseField(body.neighborhoodInsights);
+            body.floorPlan = parseField(body.floorPlan);
+            
             const files = req.files as {
                 images?: Express.Multer.File[];
                 floorPlan?: Express.Multer.File[];

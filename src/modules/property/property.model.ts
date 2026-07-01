@@ -17,7 +17,7 @@ interface IAgent {
   id: string;
   name: string;
   role: string;
-  image: string;
+  image?: string;
   // dealsCount: number;
   // rating: number;
   phone?: string;
@@ -143,7 +143,7 @@ const PropertySchema = new Schema<IProperty>(
       id: { type: String, required: true },
       name: { type: String, required: true },
       role: { type: String, required: true },
-      image: { type: String, required: true },
+      image: { type: String},
       // dealsCount: { type: Number, required: true },
       // rating: { type: Number, required: true },
       phone: { type: String },
