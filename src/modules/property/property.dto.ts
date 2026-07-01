@@ -45,7 +45,7 @@ export interface IAgentDto {
   id: string;
   name: string;
   role: string;
-  image: string;
+  image?: string;
   dealsCount: number;
   rating: number;
   phone?: string;
@@ -78,7 +78,7 @@ export interface ICreatePropertyDto {
   description: string;
   specs: IPropertySpecDto[];
   amenities: IAmenityDto[];
-  images: IImageDto[];
+  images: string[];
   videoTourUrl?: string;
   floorPlan: IFloorPlanDto;
   agent: IAgentDto;
@@ -100,7 +100,7 @@ export interface IUpdatePropertyDto {
   description?: string;
   specs?: IPropertySpecDto[];
   amenities?: IAmenityDto[];
-  images?: IImageDto[];
+  images?: string[];
   videoTourUrl?: string;
   floorPlan?: IFloorPlanDto;
   agent?: IAgentDto;

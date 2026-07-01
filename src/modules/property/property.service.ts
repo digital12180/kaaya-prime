@@ -107,7 +107,7 @@ export class PropertyService {
 
     // Get a single property by ID
     async getPropertyById(id: string): Promise<IProperty | null> {
-        return await Property.findOne({ id }).exec();
+        return await Property.findOne({ _id:id }).exec();
     }
 
     // Update a property

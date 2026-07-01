@@ -71,7 +71,7 @@ export interface IProperty extends Document {
   description: string;
   specs: IPropertySpec[];
   amenities: IAmenity[];
-  images: IImage[];
+  images: string[];
   videoTourUrl?: string;
   floorPlan: IFloorPlan;
   agent: IAgent;
@@ -129,11 +129,12 @@ const PropertySchema = new Schema<IProperty>(
       },
     ],
     images: [
-      {
-        url: { type: String, required: true },
-        alt: { type: String, required: true },
-        isPrimary: { type: Boolean, default: false },
-      },
+      // {
+      //   url: { type: String, required: true },
+      //   alt: { type: String, required: true },
+      //   isPrimary: { type: Boolean, default: false },
+      // },
+      { type: String }
     ],
     videoTourUrl: { type: String },
     floorPlan: {
@@ -176,7 +177,7 @@ PropertySchema.pre('save', function () {
     this.address.coordinates.lat = Number(this.address.coordinates.lat);
     this.address.coordinates.lng = Number(this.address.coordinates.lng);
   }
-//   next();
+  //   next();
 });
 
 // Indexes for better query performance
