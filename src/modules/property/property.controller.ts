@@ -141,8 +141,8 @@ export class PropertyController {
     // Get a single property by ID
     async getById(req: Request, res: Response) {
         try {
-            const { id } = req.params;
-            const property = await propertyService.getPropertyById(id as string);
+            const { slug } = req.params;
+            const property = await propertyService.getPropertyById(slug as string);
 
             if (!property) {
                 return res.status(404).json({
