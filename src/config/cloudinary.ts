@@ -208,3 +208,12 @@ export const uploadToCloudinary = (
     readableStream.pipe(uploadStream);
   });
 };
+
+export const deleteFromCloudinary = async (publicId: string): Promise<void> => {
+  try {
+    await cloudinary.uploader.destroy(publicId);
+  } catch (error) {
+    console.error("Error deleting from Cloudinary:", error);
+    throw error;
+  }
+};
