@@ -5,20 +5,43 @@ import type { CreateLeadDto, UpdateLeadDto, LeadResponseDto, PaginationDto } fro
 import { ApiError } from "../../common/exceptions/apiError.js";
 import { emailService } from "../../common/services/email.service.js";
 import { User } from "../user/user.model.js";
+import axios from "axios";
+const WEBHOOK_URL = process.env.BITRIX_WEBHOOK_URL;
 
 export class LeadService {
     // Create a new lead
     async createLead(createLeadDto: CreateLeadDto): Promise<LeadResponseDto | Response | any> {
         try {
-            
+
             const lead = new Lead(createLeadDto);
             await lead.save();
-            
+
+
+
+            await axios.post(WEBHOOK_URL as string, {
+                fields: {
+                    CATEGORY_ID: 0,
+
+                    TITLE: `Website Lead - ${lead.name}`,
+
+                    UF_CRM_1779090187757: lead.name,
+
+                    UF_CRM_1779090218946: lead.email,
+
+                    UF_CRM_1779090246683: lead.phone,
+
+                    UF_CRM_1779090263226: lead.message || "",
+
+                    SOURCE_ID: lead.source || "UC_D5J0FU"
+                }
+            });
+
+            // console.log(result.data)
             // await emailService.sendLeadCreatedEmail(createLeadDto.email.toLowerCase(),createLeadDto.name);
             return lead;
         } catch (error: any) {
             console.log(error.message);
-            
+
             if (error.code === 11000) {
                 throw new Error("Duplicate lead: Email and phone combination already exists");
             }
