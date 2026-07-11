@@ -13,6 +13,7 @@ import developerRoutes from "../modules/dashboard/developer.route.js";
 import stageRoutes from "../modules/dashboard/stage.route.js";
 import dashboardRoute from "../modules/crm/dashboard.route.js"
 import propertyRoutes from "../modules/property/property.route.js"
+import careerRoutes from "../modules/career/career.routes.js"
 const router = Router();
 
 router.use('/auth', authRoutes);
@@ -29,6 +30,7 @@ router.use('/developer-scores', developerRoutes);
 router.use('/stages', stageRoutes);
 router.use("/dashboard",dashboardRoute);
 router.use("/landingpage",propertyRoutes);
+router.use("/careers", careerRoutes);
 
 
 export default router;
