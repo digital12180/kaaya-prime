@@ -58,7 +58,7 @@ export class LeadService {
 
                             CATEGORY_ID: 0,
 
-                            TITLE: `${lead.name} - ${lead.source}`,
+                            TITLE: `${firstName} ${lastName}- ${lead.source || "WEBSITE"}`,
 
                             UF_CRM_1784022012: firstName,
 
