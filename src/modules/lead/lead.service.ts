@@ -18,23 +18,85 @@ export class LeadService {
 
 
 
-            await axios.post(WEBHOOK_URL as string, {
-                fields: {
-                    CATEGORY_ID: 0,
+            // await axios.post(WEBHOOK_URL as string, {
+            //     fields: {
+            //         CATEGORY_ID: 0,
 
-                    TITLE: `Website Lead - ${lead.name}`,
+            //         TITLE: `Website Lead - ${lead.name}`,
 
-                    UF_CRM_1779090187757: lead.name,
+            //         UF_CRM_1779090187757: lead.name,
 
-                    UF_CRM_1779090218946: lead.email,
+            //         UF_CRM_1779090218946: lead.email,
 
-                    UF_CRM_1779090246683: lead.phone,
+            //         UF_CRM_1779090246683: lead.phone,
 
-                    UF_CRM_1779090263226: lead.message || "",
+            //         UF_CRM_1779090263226: lead.message || "",
 
-                    SOURCE_ID: lead.source || "UC_D5J0FU"
+            //         SOURCE_ID: lead.source || "UC_D5J0FU"
+            //     }
+            // });
+            const parts = lead.name.trim().split(" ");
+
+            const firstName = parts[0];
+            const lastName = parts.slice(1).join(" ");
+
+
+
+            const res = await fetch(
+
+                "https://crm.ka-aya.com/rest/1/i2bt6niix6521uxo/crm.deal.add.json",
+
+                {
+
+                    method: "POST",
+
+                    headers: { "Content-Type": "application/json" },
+
+                    body: JSON.stringify({
+
+                        fields: {
+
+                            CATEGORY_ID: 0,
+
+                            TITLE: `${lead.name} - ${lead.source}`,
+
+                            UF_CRM_1784022012: firstName,
+
+                            UF_CRM_1784023125: lastName,
+
+                            UF_CRM_1784022689: lead.email,
+
+                            UF_CRM_1784022699: lead.phone,
+
+                            UF_CRM_1779090354009: "39",
+
+                            SOURCE_ID: "UC_D5J0FU",
+
+                            UF_CRM_1781272129: "223",
+
+                        },
+
+                    }),
+
                 }
-            });
+
+            );
+
+            const data = await res.json();
+
+            console.log(data.result.UF_CRM_1784022012); // First Name
+            console.log(data.result.UF_CRM_1784022689); // Email
+            console.log(data.result.UF_CRM_1784022699); // Phone
+
+
+            if (!res.ok || data.error) {
+                console.error("Bitrix Error:", data);
+            } else {
+                console.log("Deal Created:", data.result);
+            }
+
+            console.log(data);
+
 
             // console.log(result.data)
             // await emailService.sendLeadCreatedEmail(createLeadDto.email.toLowerCase(),createLeadDto.name);
