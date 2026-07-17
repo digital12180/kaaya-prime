@@ -70,9 +70,14 @@ export class LeadService {
 
                             UF_CRM_1779090354009: "39",
 
-                            SOURCE_ID: "UC_D5J0FU",
-
+                            // SOURCE_ID: "UC_D5J0FU",  
+                            SOURCE_ID: "WEBSITE",
                             UF_CRM_1781272129: "223",
+                            COMMENTS: `Name: ${lead.name}
+Email: ${lead.email}
+Phone: ${lead.phone}`,
+
+
 
                         },
 
