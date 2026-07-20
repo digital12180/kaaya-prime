@@ -12,7 +12,7 @@ const WEBHOOK_URL = process.env.BITRIX_WEBHOOK_URL;
 export class LeadService {
     // Mapping Page -> Source ID
     private getPageId(page: string): number {
-        switch ((page || "").trim().toLowerCase()) {
+        switch ((page || "").trim()) {
             case "Consult Now Form":
                 return 12;
 
@@ -32,7 +32,7 @@ export class LeadService {
 
     // Mapping Message -> Enumeration ID
     private getMessageId(message: string): number | null {
-        switch ((message || "").trim().toLowerCase()) {
+        switch ((message || "").trim()) {
             case "help me understand the market":
                 return 221;
 
