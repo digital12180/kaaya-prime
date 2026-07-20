@@ -10,35 +10,36 @@ import type { AnyAaaaRecord } from "dns";
 const WEBHOOK_URL = process.env.BITRIX_WEBHOOK_URL;
 
 export class LeadService {
-    // Create a new lead
-    async getPageId(page: string) {
-        switch ((page || "").toLowerCase()) {
-            case "Consult Now":
+    // Mapping Page -> Source ID
+    private getPageId(page: string): number {
+        switch ((page || "").trim().toLowerCase()) {
+            case "consult now":
                 return 12;
 
-            case "Contact Us":
+            case "contact us":
                 return 13;
 
-            case "Report Form":
+            case "report form":
                 return 14;
 
-            case "Popup Form":
+            case "popup form":
                 return 15;
 
             default:
-                return 12; // default Website
+                return 12;
         }
     }
 
-    async getMessageId(message: string) {
-        switch ((message || "").toLowerCase()) {
-            case "Help me understand the market":
+    // Mapping Message -> Enumeration ID
+    private getMessageId(message: string): number | null {
+        switch ((message || "").trim().toLowerCase()) {
+            case "help me understand the market":
                 return 221;
 
-            case "Help me evaluate opportunities":
+            case "help me evaluate opportunities":
                 return 222;
 
-            case "I'd like an advisor's perspective":
+            case "i'd like an advisor's perspective":
                 return 223;
 
             default:
@@ -142,30 +143,31 @@ export class LeadService {
             const lead = new Lead(createLeadDto);
             await lead.save();
 
-            const parts = lead.name.trim().split(" ");
+            const parts = lead.name.trim().split(/\s+/);
 
             const firstName = parts[0];
             const lastName = parts.slice(1).join(" ");
 
+            const sourceId = this.getPageId(lead.page as string);
+            const messageId = this.getMessageId(lead.message as string);
+
             const payload = {
                 fields: {
                     CATEGORY_ID: 0,
+                    SOURCE_ID: sourceId,
 
-                    // Dynamic Source ID
-                    SOURCE_ID: this.getPageId(lead.page as string),
-
-                    // Custom Fields
                     UF_CRM_1784022012: firstName,
                     UF_CRM_1784023125: lastName,
                     UF_CRM_1784022689: lead.email,
                     UF_CRM_1784022699: lead.phone,
 
-                    // Support Enum ID
-                    UF_CRM_1781272129: this.getMessageId(lead.message as string),
+                    UF_CRM_1781272129: messageId,
                 },
             };
 
-            console.log("Bitrix Payload =>", payload);
+            console.log("Lead Page:", lead.page);
+            console.log("Lead Message:", lead.message);
+            console.log("Bitrix Payload:", JSON.stringify(payload, null, 2));
 
             const res = await fetch(
                 "https://crm.ka-aya.com/rest/1/i2bt6niix6521uxo/crm.deal.add.json",
@@ -182,11 +184,12 @@ export class LeadService {
 
             if (!res.ok || data.error) {
                 console.error("Bitrix Error:", data);
-                throw new Error(data.error_description || "Failed to create Bitrix Deal");
+                throw new Error(
+                    data.error_description || data.error || "Failed to create Bitrix Deal",
+                );
             }
 
             console.log("Bitrix Deal Created:", data.result);
-            // console.log("Bitrix Deal Created:", data.result);
 
             return lead;
         } catch (error: any) {
