@@ -6,117 +6,203 @@ import { ApiError } from "../../common/exceptions/apiError.js";
 import { emailService } from "../../common/services/email.service.js";
 import { User } from "../user/user.model.js";
 import axios from "axios";
+import type { AnyAaaaRecord } from "dns";
 const WEBHOOK_URL = process.env.BITRIX_WEBHOOK_URL;
 
 export class LeadService {
     // Create a new lead
-    async createLead(createLeadDto: CreateLeadDto): Promise<LeadResponseDto | Response | any> {
-        try {
+    async getPageId(page: string) {
+        switch ((page || "").toLowerCase()) {
+            case "Consult Now":
+                return 12;
 
+            case "Contact Us":
+                return 13;
+
+            case "Report Form":
+                return 14;
+
+            case "Popup Form":
+                return 15;
+
+            default:
+                return 12; // default Website
+        }
+    }
+
+    async getMessageId(message: string) {
+        switch ((message || "").toLowerCase()) {
+            case "Help me understand the market":
+                return 221;
+
+            case "Help me evaluate opportunities":
+                return 222;
+
+            case "I'd like an advisor's perspective":
+                return 223;
+
+            default:
+                return null;
+        }
+    }
+    //     async createLead(createLeadDto: CreateLeadDto): Promise<LeadResponseDto | Response | any> {
+    //         try {
+
+    //             const lead = new Lead(createLeadDto);
+    //             await lead.save();
+
+    //             const parts = lead.name.trim().split(" ");
+
+    //             const firstName = parts[0];
+    //             const lastName = parts.slice(1).join(" ");
+
+
+
+    //             const res = await fetch(
+
+    //                 "https://crm.ka-aya.com/rest/1/i2bt6niix6521uxo/crm.deal.add.json",
+
+    //                 {
+
+    //                     method: "POST",
+
+    //                     headers: { "Content-Type": "application/json" },
+
+    //                     body: JSON.stringify({
+
+    //                         fields: {
+
+    //                             CATEGORY_ID: 0,
+
+    //                             TITLE: `${firstName} ${lastName}- ${lead.source || "WEBSITE"}`,
+
+    //                             UF_CRM_1784022012: firstName,
+
+    //                             UF_CRM_1784023125: lastName,
+
+    //                             UF_CRM_1784022689: lead.email,
+
+    //                             UF_CRM_1784022699: lead.phone,
+
+    //                             UF_CRM_1779090354009: "39",
+
+    //                             // SOURCE_ID: "UC_D5J0FU",  
+    //                             SOURCE_ID: "WEBSITE",
+    //                             UF_CRM_1781272129: "223",
+    //                             COMMENTS: `Name: ${lead.name}
+    // Email: ${lead.email}
+    // Phone: ${lead.phone}`,
+
+
+
+    //                         },
+
+    //                     }),
+
+    //                 }
+
+    //             );
+
+    //             const data = await res.json();
+
+    //             console.log(data.result.UF_CRM_1784022012); // First Name
+    //             console.log(data.result.UF_CRM_1784022689); // Email
+    //             console.log(data.result.UF_CRM_1784022699); // Phone
+
+
+    //             if (!res.ok || data.error) {
+    //                 console.error("Bitrix Error:", data);
+    //             } else {
+    //                 console.log("Deal Created:", data.result);
+    //             }
+
+    //             console.log(data);
+
+
+    //             // console.log(result.data)
+    //             // await emailService.sendLeadCreatedEmail(createLeadDto.email.toLowerCase(),createLeadDto.name);
+    //             return lead;
+    //         } catch (error: any) {
+    //             console.log(error.message);
+
+    //             if (error.code === 11000) {
+    //                 throw new Error("Duplicate lead: Email and phone combination already exists");
+    //             }
+    //             throw error;
+    //         }
+    //     }
+
+    // Get all leads with pagination and filtering
+
+
+    async createLead(
+        createLeadDto: CreateLeadDto,
+    ): Promise<LeadResponseDto | Response | any> {
+        try {
             const lead = new Lead(createLeadDto);
             await lead.save();
 
-
-
-            // await axios.post(WEBHOOK_URL as string, {
-            //     fields: {
-            //         CATEGORY_ID: 0,
-
-            //         TITLE: `Website Lead - ${lead.name}`,
-
-            //         UF_CRM_1779090187757: lead.name,
-
-            //         UF_CRM_1779090218946: lead.email,
-
-            //         UF_CRM_1779090246683: lead.phone,
-
-            //         UF_CRM_1779090263226: lead.message || "",
-
-            //         SOURCE_ID: lead.source || "UC_D5J0FU"
-            //     }
-            // });
             const parts = lead.name.trim().split(" ");
 
             const firstName = parts[0];
             const lastName = parts.slice(1).join(" ");
 
+            const payload = {
+                fields: {
+                    CATEGORY_ID: 0,
 
+                    // Dynamic Source ID
+                    SOURCE_ID: this.getPageId(lead.page as string),
+
+                    // Custom Fields
+                    UF_CRM_1784022012: firstName,
+                    UF_CRM_1784023125: lastName,
+                    UF_CRM_1784022689: lead.email,
+                    UF_CRM_1784022699: lead.phone,
+
+                    // Support Enum ID
+                    UF_CRM_1781272129: this.getMessageId(lead.message as string),
+                },
+            };
+
+            console.log("Bitrix Payload =>", payload);
 
             const res = await fetch(
-
                 "https://crm.ka-aya.com/rest/1/i2bt6niix6521uxo/crm.deal.add.json",
-
                 {
-
                     method: "POST",
-
-                    headers: { "Content-Type": "application/json" },
-
-                    body: JSON.stringify({
-
-                        fields: {
-
-                            CATEGORY_ID: 0,
-
-                            TITLE: `${firstName} ${lastName}- ${lead.source || "WEBSITE"}`,
-
-                            UF_CRM_1784022012: firstName,
-
-                            UF_CRM_1784023125: lastName,
-
-                            UF_CRM_1784022689: lead.email,
-
-                            UF_CRM_1784022699: lead.phone,
-
-                            UF_CRM_1779090354009: "39",
-
-                            // SOURCE_ID: "UC_D5J0FU",  
-                            SOURCE_ID: "WEBSITE",
-                            UF_CRM_1781272129: "223",
-                            COMMENTS: `Name: ${lead.name}
-Email: ${lead.email}
-Phone: ${lead.phone}`,
-
-
-
-                        },
-
-                    }),
-
-                }
-
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                },
             );
 
             const data = await res.json();
 
-            console.log(data.result.UF_CRM_1784022012); // First Name
-            console.log(data.result.UF_CRM_1784022689); // Email
-            console.log(data.result.UF_CRM_1784022699); // Phone
-
-
             if (!res.ok || data.error) {
                 console.error("Bitrix Error:", data);
-            } else {
-                console.log("Deal Created:", data.result);
+                throw new Error(data.error_description || "Failed to create Bitrix Deal");
             }
 
-            console.log(data);
+            console.log("Bitrix Deal Created:", data.result);
+            // console.log("Bitrix Deal Created:", data.result);
 
-
-            // console.log(result.data)
-            // await emailService.sendLeadCreatedEmail(createLeadDto.email.toLowerCase(),createLeadDto.name);
             return lead;
         } catch (error: any) {
-            console.log(error.message);
+            console.error(error);
 
             if (error.code === 11000) {
-                throw new Error("Duplicate lead: Email and phone combination already exists");
+                throw new Error(
+                    "Duplicate lead: Email and phone combination already exists",
+                );
             }
+
             throw error;
         }
     }
 
-    // Get all leads with pagination and filtering
+
     async getAllLeads(paginationDto: PaginationDto): Promise<{
         leads: any;
         total: number;
