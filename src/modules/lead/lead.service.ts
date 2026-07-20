@@ -13,16 +13,16 @@ export class LeadService {
     // Mapping Page -> Source ID
     private getPageId(page: string): number {
         switch ((page || "").trim().toLowerCase()) {
-            case "consult now":
+            case "Consult Now":
                 return 12;
 
-            case "contact us":
+            case "Contact Us":
                 return 13;
 
-            case "report form":
+            case "Report Form":
                 return 14;
 
-            case "popup form":
+            case "Popup Form":
                 return 15;
 
             default:
