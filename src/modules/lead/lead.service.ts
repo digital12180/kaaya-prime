@@ -32,7 +32,7 @@ export class LeadService {
 
     // Mapping Message -> Enumeration ID
     private getMessageId(message: string): number | null {
-        switch ((message || "").trim()) {
+        switch ((message || "").trim().toLowerCase()) {
             case "help me understand the market":
                 return 221;
 
