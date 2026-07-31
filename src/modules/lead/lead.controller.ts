@@ -1,7 +1,7 @@
 // controllers/lead.controller.ts
 import type { Request, Response } from "express";
 import { LeadService } from "./lead.service.js";
-import type { CreateLeadDto, UpdateLeadDto, PaginationDto } from "./lead.dto.js";
+import type { CreateLeadDto, UpdateLeadDto, PaginationDto, PaginationbyDto } from "./lead.dto.js";
 import { validate } from "class-validator";
 import type { Date } from "mongoose";
 
@@ -38,53 +38,111 @@ export class LeadController {
     getAllLeads = async (req: Request, res: Response): Promise<void> => {
         try {
             const paginationDto: PaginationDto = req.query;
-            // paginationDto.page = req.query.page ? parseInt(req.query.page as string) : 1;
-            // paginationDto.limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+            paginationDto.page = req.query.page ? parseInt(req.query.page as string) : 1;
+            paginationDto.limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
             paginationDto.search = req.query.search as string;
             paginationDto.source = req.query.source as string;
 
-            paginationDto.startDate = req.query.startDate
-                ? new Date(req.query.startDate as string)
-                : null;
-
-            paginationDto.endDate = req.query.endDate
-                ? new Date(req.query.endDate as string)
-                : null;
 
             // Validate pagination params
-            // if (paginationDto.page && (paginationDto.page < 1 || isNaN(paginationDto.page))) {
-            //     res.status(400).json({
-            //         success: false,
-            //         message: "Page must be a positive number"
-            //     });
-            //     return;
-            // }
+            if (paginationDto.page && (paginationDto.page < 1 || isNaN(paginationDto.page))) {
+                res.status(400).json({
+                    success: false,
+                    message: "Page must be a positive number"
+                });
+                return;
+            }
 
-            // if (paginationDto.limit && (paginationDto.limit < 1 || paginationDto.limit > 100 || isNaN(paginationDto.limit))) {
-            //     res.status(400).json({
-            //         success: false,
-            //         message: "Limit must be between 1 and 100"
-            //     });
-            //     return;
-            // }
+            if (paginationDto.limit && (paginationDto.limit < 1 || paginationDto.limit > 100 || isNaN(paginationDto.limit))) {
+                res.status(400).json({
+                    success: false,
+                    message: "Limit must be between 1 and 100"
+                });
+                return;
+            }
 
             const result = await this.leadService.getAllLeads(paginationDto);
             res.status(200).json({
                 success: true,
                 message: "Leads retrieved successfully",
                 data: result.leads,
-                // pagination: {
-                //     page: result.page,
-                //     limit: paginationDto.limit,
-                //     total: result.total,
-                //     totalPages: result.totalPages
-                // }
+                pagination: {
+                    page: result.page,
+                    limit: paginationDto.limit,
+                    total: result.total,
+                    totalPages: result.totalPages
+                }
             });
         } catch (error: any) {
             res.status(500).json({
                 success: false,
                 message: error.message || "Failed to retrieve leads",
                 error: process.env.NODE_ENV === "development" ? error.stack : undefined
+            });
+        }
+    };
+
+    getAllLeadsByDate = async (req: Request, res: Response): Promise<any> => {
+        try {
+            const paginationDto: PaginationbyDto = {
+                startDate: req.query.startDate
+                    ? new Date(req.query.startDate as string)
+                    : null,
+
+                endDate: req.query.endDate
+                    ? new Date(req.query.endDate as string)
+                    : null,
+            };
+
+            // Validate dates
+            if (
+                paginationDto.startDate &&
+                isNaN(paginationDto.startDate.getTime())
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid startDate",
+                });
+            }
+
+            if (
+                paginationDto.endDate &&
+                isNaN(paginationDto.endDate.getTime())
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid endDate",
+                });
+            }
+
+            if (
+                paginationDto.startDate &&
+                paginationDto.endDate &&
+                paginationDto.startDate > paginationDto.endDate
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message: "startDate cannot be greater than endDate",
+                });
+            }
+
+            const result = await this.leadService.getAllLeadsByDate(
+                paginationDto
+            );
+
+            res.status(200).json({
+                success: true,
+                message: "Leads retrieved successfully",
+                data: result.leads,
+            });
+        } catch (error: any) {
+            res.status(500).json({
+                success: false,
+                message: error.message || "Failed to retrieve leads",
+                error:
+                    process.env.NODE_ENV === "development"
+                        ? error.stack
+                        : undefined,
             });
         }
     };

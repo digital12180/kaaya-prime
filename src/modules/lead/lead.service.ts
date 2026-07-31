@@ -1,7 +1,7 @@
 // services/lead.service.ts
 import mongoose from "mongoose";
 import { Lead } from "./lead.model.js";
-import type { CreateLeadDto, UpdateLeadDto, LeadResponseDto, PaginationDto } from "./lead.dto.js";
+import type { CreateLeadDto, UpdateLeadDto, LeadResponseDto, PaginationDto, PaginationbyDto } from "./lead.dto.js";
 import { ApiError } from "../../common/exceptions/apiError.js";
 import { emailService } from "../../common/services/email.service.js";
 import { User } from "../user/user.model.js";
@@ -208,13 +208,13 @@ export class LeadService {
 
     async getAllLeads(paginationDto: PaginationDto): Promise<{
         leads: any;
-        // total: number;
-        // page: number;
-        // totalPages: number;
+        total: number;
+        page: number;
+        totalPages: number;
     }> {
-        // const page = Math.max(1, paginationDto.page || 1);
-        // const limit = Math.min(100, Math.max(1, paginationDto.limit || 10));
-        // const skip = (page - 1) * limit;
+        const page = Math.max(1, paginationDto.page || 1);
+        const limit = Math.min(100, Math.max(1, paginationDto.limit || 10));
+        const skip = (page - 1) * limit;
 
         let query: any = {};
 
@@ -231,22 +231,53 @@ export class LeadService {
         const [leads, total] = await Promise.all([
             Lead.find(query)
                 .sort({ createdAt: -1 })
-                // .skip(skip)
-                // .limit(limit)
+                .skip(skip)
+                .limit(limit)
                 .lean(),
             Lead.countDocuments(query)
         ]);
 
-        // const totalPages = Math.ceil(total / limit);
+        const totalPages = Math.ceil(total / limit);
 
         return {
             leads: leads,
-            // total,
-            // page,
-            // totalPages
+            total,
+            page,
+            totalPages
         };
     }
 
+
+
+    async getAllLeadsByDate(
+        paginationDto: PaginationbyDto
+    ): Promise<{ leads: any }> {
+
+        const query: any = {};
+
+        // Apply date filter only if dates are provided
+        if (paginationDto.startDate || paginationDto.endDate) {
+            query.createdAt = {};
+
+            if (paginationDto.startDate) {
+                query.createdAt.$gte = paginationDto.startDate;
+            }
+
+            if (paginationDto.endDate) {
+                const endDate = new Date(paginationDto.endDate);
+                endDate.setHours(23, 59, 59, 999);
+                query.createdAt.$lte = endDate;
+            }
+        }
+
+        const leads = await Lead.find(query)
+            .sort({ createdAt: -1 })
+            .lean();
+
+        return {
+            leads,
+        };
+    }
     // Get lead by ID
     async getLeadById(id: string): Promise<LeadResponseDto | any | Response> {
         if (!mongoose.Types.ObjectId.isValid(id)) {
