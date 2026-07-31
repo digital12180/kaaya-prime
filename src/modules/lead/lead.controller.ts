@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import { LeadService } from "./lead.service.js";
 import type { CreateLeadDto, UpdateLeadDto, PaginationDto } from "./lead.dto.js";
 import { validate } from "class-validator";
+import type { Date } from "mongoose";
 
 
 export class LeadController {
@@ -37,39 +38,47 @@ export class LeadController {
     getAllLeads = async (req: Request, res: Response): Promise<void> => {
         try {
             const paginationDto: PaginationDto = req.query;
-            paginationDto.page = req.query.page ? parseInt(req.query.page as string) : 1;
-            paginationDto.limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+            // paginationDto.page = req.query.page ? parseInt(req.query.page as string) : 1;
+            // paginationDto.limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
             paginationDto.search = req.query.search as string;
             paginationDto.source = req.query.source as string;
 
-            // Validate pagination params
-            if (paginationDto.page && (paginationDto.page < 1 || isNaN(paginationDto.page))) {
-                res.status(400).json({
-                    success: false,
-                    message: "Page must be a positive number"
-                });
-                return;
-            }
+            paginationDto.startDate = req.query.startDate
+                ? new Date(req.query.startDate as string)
+                : null;
 
-            if (paginationDto.limit && (paginationDto.limit < 1 || paginationDto.limit > 100 || isNaN(paginationDto.limit))) {
-                res.status(400).json({
-                    success: false,
-                    message: "Limit must be between 1 and 100"
-                });
-                return;
-            }
+            paginationDto.endDate = req.query.endDate
+                ? new Date(req.query.endDate as string)
+                : null;
+
+            // Validate pagination params
+            // if (paginationDto.page && (paginationDto.page < 1 || isNaN(paginationDto.page))) {
+            //     res.status(400).json({
+            //         success: false,
+            //         message: "Page must be a positive number"
+            //     });
+            //     return;
+            // }
+
+            // if (paginationDto.limit && (paginationDto.limit < 1 || paginationDto.limit > 100 || isNaN(paginationDto.limit))) {
+            //     res.status(400).json({
+            //         success: false,
+            //         message: "Limit must be between 1 and 100"
+            //     });
+            //     return;
+            // }
 
             const result = await this.leadService.getAllLeads(paginationDto);
             res.status(200).json({
                 success: true,
                 message: "Leads retrieved successfully",
                 data: result.leads,
-                pagination: {
-                    page: result.page,
-                    limit: paginationDto.limit,
-                    total: result.total,
-                    totalPages: result.totalPages
-                }
+                // pagination: {
+                //     page: result.page,
+                //     limit: paginationDto.limit,
+                //     total: result.total,
+                //     totalPages: result.totalPages
+                // }
             });
         } catch (error: any) {
             res.status(500).json({

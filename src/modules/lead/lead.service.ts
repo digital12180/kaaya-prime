@@ -208,13 +208,13 @@ export class LeadService {
 
     async getAllLeads(paginationDto: PaginationDto): Promise<{
         leads: any;
-        total: number;
-        page: number;
-        totalPages: number;
+        // total: number;
+        // page: number;
+        // totalPages: number;
     }> {
-        const page = Math.max(1, paginationDto.page || 1);
-        const limit = Math.min(100, Math.max(1, paginationDto.limit || 10));
-        const skip = (page - 1) * limit;
+        // const page = Math.max(1, paginationDto.page || 1);
+        // const limit = Math.min(100, Math.max(1, paginationDto.limit || 10));
+        // const skip = (page - 1) * limit;
 
         let query: any = {};
 
@@ -231,19 +231,19 @@ export class LeadService {
         const [leads, total] = await Promise.all([
             Lead.find(query)
                 .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(limit)
+                // .skip(skip)
+                // .limit(limit)
                 .lean(),
             Lead.countDocuments(query)
         ]);
 
-        const totalPages = Math.ceil(total / limit);
+        // const totalPages = Math.ceil(total / limit);
 
         return {
             leads: leads,
-            total,
-            page,
-            totalPages
+            // total,
+            // page,
+            // totalPages
         };
     }
 

@@ -31,10 +31,12 @@ export interface LeadResponseDto {
 }
 
 export interface PaginationDto {
-  page?: number;
-  limit?: number;
+  // page?: number;
+  // limit?: number;
   search?: string;
   source?: string;
+  startDate?: Date | null;
+  endDate?: Date | null;
 }
 export const mapLeadResponseDto = (lead: any): LeadResponseDto => ({
   _id: lead._id?.toString(),
