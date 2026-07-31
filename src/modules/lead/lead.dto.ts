@@ -31,10 +31,12 @@ export interface LeadResponseDto {
 }
 
 export interface PaginationDto {
-  // page?: number;
-  // limit?: number;
+  page?: number;
+  limit?: number;
   search?: string;
   source?: string;
+}
+export interface PaginationbyDto {
   startDate?: Date | null;
   endDate?: Date | null;
 }
